@@ -13,7 +13,8 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(FName("MuzzleFlash"));
 	if (MuzzleSocket)
 	{
-		FTransform MuzzleTransform = MuzzleSocket->GetSocketTransform(Get_WeaponMesh());
+		//获取生成子弹的位置（武器mesh存在一个枪口的槽位）
+		FTransform MuzzleTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
 		FVector ToTarget = HitTarget - MuzzleTransform.GetLocation();
 		FRotator Rotation = ToTarget.Rotation();
 		if (ProjectileClass && InstigatorPawn)
@@ -25,7 +26,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 			if (World)
 			{
 				World->SpawnActor<AProjectile>(
-					ProjectileClass,
+					ProjectileClass, // 子弹的蓝图类
 					MuzzleTransform.GetLocation(),
 					Rotation,
 					SpawnParameters
