@@ -7,6 +7,9 @@
 void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
+
+	//客户端不需要生成子弹，服务器会生成并replicate
+	if (!HasAuthority()) return;
 	
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 	//Spawn Projectile

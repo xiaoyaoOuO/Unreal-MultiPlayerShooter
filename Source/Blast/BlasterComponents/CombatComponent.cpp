@@ -20,7 +20,7 @@ UCombatComponent::UCombatComponent()
 	AimingMoveSpeed = 400.f;
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
 	if (Character)
@@ -30,9 +30,9 @@ void UCombatComponent::MulticastFire_Implementation()
 	}
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
 {
-	MulticastFire();
+	MulticastFire(HitTarget);
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -67,21 +67,9 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			EndLocation,
 			ECollisionChannel::ECC_Visibility
 		);
-		if (TraceHitResult.bBlockingHit)
-		{
-			DrawDebugSphere(
-				GetWorld(),
-				TraceHitResult.ImpactPoint,
-				12.f,
-				12,
-				FColor::Red
-			);
-			HitTarget = TraceHitResult.ImpactPoint;
-		}
-		else
+		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = EndLocation;
-			HitTarget = EndLocation;
 		}
 	}
 }
@@ -108,9 +96,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -152,7 +137,9 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	bFireButtonPressed = bPressed;
 	if (bFireButtonPressed)
 	{
-		ServerFire();
+		FHitResult hitResult;
+		TraceUnderCrosshairs(hitResult);
+		ServerFire(hitResult.ImpactPoint);
 	}
 }
 

@@ -3,11 +3,14 @@
 
 #include "Projectile.h"
 
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AProjectile::AProjectile()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	SetRootComponent(BoxComponent);
@@ -30,6 +33,18 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (Tracer)
+	{
+		TracerParticleComponent = UGameplayStatics::SpawnEmitterAttached(
+			Tracer,
+			BoxComponent,
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition
+		);
+	}
 	
 }
 

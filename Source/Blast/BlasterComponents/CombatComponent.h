@@ -26,10 +26,10 @@ public:
 	void Server_SetAiming(bool bIsAiming);
 
 	UFUNCTION(NetMulticast,Reliable)
-	void MulticastFire();
+	void MulticastFire(FVector_NetQuantize HitTarget);
 
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(FVector_NetQuantize HitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 protected:
@@ -53,6 +53,4 @@ public:
 	float AimingMoveSpeed;
 
 	bool bFireButtonPressed;
-
-	FVector HitTarget;
 };
