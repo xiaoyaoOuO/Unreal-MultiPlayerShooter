@@ -4,6 +4,7 @@
 #include "Projectile.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -45,7 +46,31 @@ void AProjectile::BeginPlay()
 			EAttachLocation::Type::KeepWorldPosition
 		);
 	}
+
+	if (HasAuthority())
+	{
+		BoxComponent->OnComponentHit.AddDynamic(this,&AProjectile::OnHit);
+	}
 	
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+	if (DestroyedImpact)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),DestroyedImpact,GetActorTransform());
+	}
+	if (DestroyedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(),DestroyedSound,GetActorLocation());
+	}
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+                        FVector NormalImpulse, const FHitResult& HitResult)
+{
+	Destroy();
 }
 
 // Called every frame
