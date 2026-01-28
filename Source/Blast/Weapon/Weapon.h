@@ -50,17 +50,18 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void ShowPickUpWidget(bool bShowPickupWidget);
+	void ShowPickUpWidget(bool bShowPickupWidget) const;
 
 	void SetWeaponState(EWeaponState State);
 
 	UFUNCTION()
-	void OnRep_WeaponState();
+	void OnRep_WeaponState() const;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void Fire(const FVector& HitTarget);
 
+	USkeletalMeshComponent* Get_WeaponMesh() const;
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
 	class USkeletalMeshComponent* WeaponMesh;
@@ -76,9 +77,25 @@ public:
 	
 	UPROPERTY(EditAnywhere,Category = "Weapon Properties")
 	class UAnimationAsset* FireAnimationAsset;
-
-	USkeletalMeshComponent* Get_WeaponMesh();
-
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasting> BulletShell;
+
+	/*
+	 武器准心
+	 */
+	UPROPERTY(EditAnywhere,Category="Crosshair")
+	UTexture2D* CrosshairCenter;
+	
+	UPROPERTY(EditAnywhere,Category="Crosshair")
+	UTexture2D* CrosshairLeft;
+	
+	UPROPERTY(EditAnywhere,Category="Crosshair")
+	UTexture2D* CrosshairRight;
+	
+	UPROPERTY(EditAnywhere,Category="Crosshair")
+	UTexture2D* CrosshairTop;
+	
+	UPROPERTY(EditAnywhere,Category="Crosshair")
+	UTexture2D* CrosshairBottom;
 };

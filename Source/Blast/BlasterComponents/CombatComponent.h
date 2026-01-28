@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blast/Character/BlasterCharacter.h"
+#include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Components/ActorComponent.h"
+#include "Blast/HUD/BlasterHUD.h"
 #include "CombatComponent.generated.h"
 
 
@@ -32,6 +34,8 @@ public:
 	void ServerFire(FVector_NetQuantize HitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
+	void UpdateHUD(float deltaTime);
 protected:
 	virtual void BeginPlay() override;
 
@@ -39,8 +43,10 @@ protected:
 	void OnRep_EquippedWeapon();
 
 public:
-	ABlasterCharacter* Character;
-
+	class ABlasterCharacter* Character;
+	class ABlasterPlayerController* Controller;
+	class ABlasterHUD* HUD;
+	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 
@@ -49,6 +55,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float BaseMoveSpeed;
+	
 	UPROPERTY(EditAnywhere)
 	float AimingMoveSpeed;
 

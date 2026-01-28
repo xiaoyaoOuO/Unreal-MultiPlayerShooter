@@ -22,7 +22,7 @@ AWeapon::AWeapon()
 	SetRootComponent(WeaponMesh);
 
 	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>("AreaSphere");
@@ -59,8 +59,7 @@ void AWeapon::BeginPlay()
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (BlasterCharacter)
+	if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor))
 	{
 		BlasterCharacter->SetOverlappingWeapon(this);
 	}
@@ -69,8 +68,7 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComponent, int OtherBodyIndex)
 {
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (BlasterCharacter)
+	if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor))
 	{
 		BlasterCharacter->SetOverlappingWeapon(nullptr);
 	}
@@ -78,13 +76,13 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 
 // Called every frame
-void AWeapon::Tick(float DeltaTime)
+void AWeapon::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 }
 
-void AWeapon::ShowPickUpWidget(bool bShowPickupWidget)
+void AWeapon::ShowPickUpWidget(const bool bShowPickupWidget) const
 {
 	if (PickUpWidget)
 	{
@@ -92,7 +90,7 @@ void AWeapon::ShowPickUpWidget(bool bShowPickupWidget)
 	}
 }
 
-void AWeapon::SetWeaponState(EWeaponState State)
+void AWeapon::SetWeaponState(const EWeaponState State)
 {
 	WeaponState = State;
 	switch (WeaponState)
@@ -110,7 +108,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 }
 
 //同步到客户端，修改UI
-void AWeapon::OnRep_WeaponState()
+void AWeapon::OnRep_WeaponState() const
 {
 	switch (WeaponState)
 	{
@@ -124,7 +122,7 @@ void AWeapon::OnRep_WeaponState()
 	}
 }
 
-void AWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
@@ -139,15 +137,13 @@ void AWeapon::Fire(const FVector& HitTarget)
 	}
 	if (BulletShell)
 	{
-		UE_LOG(LogTemp, Warning,TEXT("create bulletshell"));
-		const USkeletalMeshSocket* AmmoEject = WeaponMesh->GetSocketByName(FName("AmmoEject"));
-		if (AmmoEject)
+		UE_LOG(LogTemp, Warning,TEXT("create bullet shell"));
+		if (const USkeletalMeshSocket* AmmoEject = WeaponMesh->GetSocketByName(FName("AmmoEject")))
 		{
 			//获取生成子弹的位置（武器mesh存在一个枪口的槽位）
 			FTransform MuzzleTransform = AmmoEject->GetSocketTransform(WeaponMesh);
 			FRotator Rotation = MuzzleTransform.GetRotation().Rotator();
-			UWorld* World = GetWorld();
-			if (World)
+			if (UWorld* World = GetWorld())
 			{
 				World->SpawnActor<ACasting>(
 					BulletShell, // 子弹的蓝图类
@@ -159,7 +155,7 @@ void AWeapon::Fire(const FVector& HitTarget)
 	}
 }
 
-class USkeletalMeshComponent* AWeapon::Get_WeaponMesh()
+USkeletalMeshComponent* AWeapon::Get_WeaponMesh() const
 {
 	return WeaponMesh;
 }
