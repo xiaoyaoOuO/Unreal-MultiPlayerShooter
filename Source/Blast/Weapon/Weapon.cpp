@@ -6,6 +6,8 @@
 #include "Blast/Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DynamicMesh/DynamicMesh3.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -134,6 +136,26 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if (FireAnimationAsset)
 	{
 		WeaponMesh->PlayAnimation(FireAnimationAsset,false);
+	}
+	if (BulletShell)
+	{
+		UE_LOG(LogTemp, Warning,TEXT("create bulletshell"));
+		const USkeletalMeshSocket* AmmoEject = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEject)
+		{
+			//获取生成子弹的位置（武器mesh存在一个枪口的槽位）
+			FTransform MuzzleTransform = AmmoEject->GetSocketTransform(WeaponMesh);
+			FRotator Rotation = MuzzleTransform.GetRotation().Rotator();
+			UWorld* World = GetWorld();
+			if (World)
+			{
+				World->SpawnActor<ACasting>(
+					BulletShell, // 子弹的蓝图类
+					MuzzleTransform.GetLocation(),
+					Rotation
+				);
+			}
+		}
 	}
 }
 

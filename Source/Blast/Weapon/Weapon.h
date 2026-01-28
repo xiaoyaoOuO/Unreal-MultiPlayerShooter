@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Casting.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -77,4 +78,7 @@ public:
 	class UAnimationAsset* FireAnimationAsset;
 
 	USkeletalMeshComponent* Get_WeaponMesh();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ACasting> BulletShell;
 };
