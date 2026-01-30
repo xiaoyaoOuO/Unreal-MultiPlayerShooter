@@ -102,6 +102,26 @@ void UCombatComponent::UpdateHUD(float deltaTime)
 				HUDPackage.CrosshairsTop = nullptr;
 				HUDPackage.CrosshairsBottom = nullptr;
 			}
+
+			/*
+			 *计算准心扩散
+			*/
+			FVector2D SpeedRange = FVector2D(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);
+			FVector CharacterSpeed = Character->GetVelocity();
+			CharacterSpeed.Z = 0.f;
+
+			WalkSpeedFactor =  FMath::GetMappedRangeValueClamped(SpeedRange,FVector2D(0,1.f),CharacterSpeed.Size());
+			
+			//跳跃扩散更大
+			if (Character->GetCharacterMovement()->IsFalling())
+			{
+				InAirFactor = FMath::FInterpTo(InAirFactor,2.25f,deltaTime,2.25f);
+			}else
+			{
+				InAirFactor = FMath::FInterpTo(InAirFactor,0.f,deltaTime,30.f);
+			}
+			HUDPackage.SpreadSize = WalkSpeedFactor + InAirFactor;
+			
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}

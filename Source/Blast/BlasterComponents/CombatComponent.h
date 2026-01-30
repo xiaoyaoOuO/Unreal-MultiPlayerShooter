@@ -60,4 +60,9 @@ public:
 	float AimingMoveSpeed;
 
 	bool bFireButtonPressed;
+
+private:
+	//准心扩散因子
+	float WalkSpeedFactor;
+	float InAirFactor;
 };

@@ -18,6 +18,8 @@ public:
 	UTexture2D* CrosshairsTop;
 	UTexture2D* CrosshairsBottom;
 
+	float SpreadSize;
+
 	bool CheckNull() const
 	{return  CrosshairsCenter != nullptr && CrosshairsLeft != nullptr &&
 		CrosshairsRight != nullptr && CrosshairsTop != nullptr && CrosshairsBottom != nullptr;}
@@ -30,9 +32,10 @@ class BLAST_API ABlasterHUD : public AHUD
 
 private:
 	FHUDPackage HUD;
+	float CrosshairSpreadMax = 16.f;
 public:
 	virtual void DrawHUD() override;
-	void DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCenter);
+	void DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCenter,FVector2D Spread = FVector2D::ZeroVector);
 	
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;};
 };
