@@ -358,6 +358,12 @@ AWeapon* ABlasterCharacter::Get_EquippedWeapon()
 	return CombatComponent->EquippedWeapon;
 }
 
+FVector ABlasterCharacter::Get_HitResult()
+{
+	if (CombatComponent == nullptr) return FVector();
+	return CombatComponent->HitTargetPoint;
+}
+
 
 void ABlasterCharacter::Tick(float DeltaTime)
 {

@@ -61,6 +61,8 @@ public:
 
 	bool bFireButtonPressed;
 
+	FVector HitTargetPoint;
+
 private:
 	//准心扩散因子
 	float WalkSpeedFactor;

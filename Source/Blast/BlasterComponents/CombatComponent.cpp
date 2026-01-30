@@ -150,6 +150,9 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
+	this->HitTargetPoint = HitResult.ImpactPoint;
 	UpdateHUD(DeltaTime);
 }
 
@@ -167,8 +170,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 
 	EquippedWeapon = Weapon;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket");
-	if (HandSocket)
+	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket"))
 	{
 		HandSocket->AttachActor(Weapon, Character->GetMesh());
 	}
@@ -192,9 +194,9 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	bFireButtonPressed = bPressed;
 	if (bFireButtonPressed)
 	{
-		FHitResult hitResult;
-		TraceUnderCrosshairs(hitResult);
-		ServerFire(hitResult.ImpactPoint);
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		ServerFire(HitResult.ImpactPoint);
 	}
 }
 

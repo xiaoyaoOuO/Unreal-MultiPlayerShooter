@@ -20,6 +20,7 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 private:
+	friend  class ABlasterCharacter;
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	ABlasterCharacter* BlasterCharacter;
 
@@ -56,13 +57,20 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	float AO_Pitch;
 
-	FRotator CharacterRotationLastFrame;
-	FRotator CharacterRotation;
-	FRotator DeltaRotation;
+	//校准瞄准旋转
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	FRotator TargetRotation;
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bIsLocalControl;
 
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	FTransform LeftHandTransform;
 
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	ETurningInPlace TurningInPlace;
+	
+	FRotator CharacterRotationLastFrame;
+	FRotator CharacterRotation;
+	FRotator DeltaRotation;
+
 };

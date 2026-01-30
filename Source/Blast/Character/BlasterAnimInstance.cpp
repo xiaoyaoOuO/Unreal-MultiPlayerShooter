@@ -6,6 +6,7 @@
 #include "Blast/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
@@ -57,6 +58,30 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		BlasterCharacterMesh->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+		
+		/*
+		 * 修正武器朝向
+		*/
+		if (const USkeletalMeshSocket* MuzzleFlash = EquippedWeaponMesh->GetSocketByName("MuzzleFlash"))
+		{
+			if (BlasterCharacter->IsLocallyControlled())
+			{
+				const FTransform RightHandTransform = BlasterCharacterMesh->GetSocketTransform("Hand_R");
+				//获取瞄准方向
+				FVector HitTarget = BlasterCharacter->Get_HitResult();
+				//右手的X轴朝向身体方向，所以rotation取反
+				TargetRotation = UKismetMathLibrary::FindLookAtRotation(
+					RightHandTransform.GetLocation(),
+					RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() -HitTarget)
+				);
+			}
+			// DrawDebugLine(
+			// 	GetWorld(),WeaponSocketTransform.GetLocation(),WeaponSocketTransform.GetLocation() + WeaponSocketTransform.GetRotation().Vector()*100.f,FColor::Red
+			// );
+			// DrawDebugLine(
+			// 	GetWorld(),WeaponSocketTransform.GetLocation(),HitTarget,FColor::Blue
+			// );
+		}
 	}
 }
 
