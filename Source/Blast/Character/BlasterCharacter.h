@@ -21,6 +21,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage();
+	void PlayHitReactMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere , Category= Camera)
@@ -53,17 +54,22 @@ private:
 	
 	float AO_Pitch;
 
+	UPROPERTY(EditAnywhere)
+	float CameraThreshold = 200.f;
+
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* FireWeaponMontage;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* HitReactMontage;
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void LookUp(float Value);
@@ -76,6 +82,8 @@ protected:
 	void AimOffset(float DeltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void HideCharacterWhenCameraClose();
+
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -83,6 +91,10 @@ public:
 	bool IsAiming();
 	AWeapon* Get_EquippedWeapon();
 	FVector Get_HitResult();
+	
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastHitReact();
+	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
 	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}

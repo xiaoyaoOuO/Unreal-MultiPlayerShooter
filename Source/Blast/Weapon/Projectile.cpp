@@ -3,6 +3,8 @@
 
 #include "Projectile.h"
 
+#include "Blast/Blast.h"
+#include "Blast/Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -21,6 +23,7 @@ AProjectile::AProjectile()
 	//仅对可见的物体和墙壁等做碰撞检测
 	BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECR_Block);
 	BoxComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	BoxComponent->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);
 
 	//子弹移动组件
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
@@ -71,6 +74,14 @@ void AProjectile::Destroyed()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                         FVector NormalImpulse, const FHitResult& HitResult)
 {
+	if (OtherActor)
+	{
+		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
+		if (HitCharacter)
+		{
+			HitCharacter->MulticastHitReact();
+		}
+	}
 	Destroy();
 }
 

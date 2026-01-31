@@ -38,7 +38,6 @@ void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
-	UE_LOG(LogTemp,Warning,TEXT("TraceUnderCrosshairs"));
 	FVector2D ViewPortSize = FVector2D::ZeroVector;
 	if (GEngine && GEngine->GameViewport)
 	{
@@ -59,13 +58,18 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if (bScreenToWorld)
 	{
 		FVector StartLocation = CrosshairWorldPosition;
+		if (Character)
+		{
+			float DistanceToCharacter = (Character->GetActorLocation() - StartLocation).Size();
+			StartLocation += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+		}
 		FVector EndLocation = StartLocation + CrosshairWorldDirection * TRACE_LENGTH;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult,
 			StartLocation,
 			EndLocation,
-			ECollisionChannel::ECC_Visibility
+			ECC_Visibility
 		);
 		if (bHit)
 		{

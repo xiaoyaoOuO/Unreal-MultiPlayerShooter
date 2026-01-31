@@ -2,14 +2,13 @@
 
 
 #include "BlasterCharacter.h"
-
+#include "Blast/Blast.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/HUD/OverHeadWidget.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Engine/NetworkObjectList.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -45,6 +44,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 
 	OverlappingWeapon = nullptr;
 
@@ -130,7 +130,18 @@ void ABlasterCharacter::PlayFireMontage()
 		bool bAming = CombatComponent->bAiming;
 		FName SlotName = bAming ? "RifleAim":"RifleHip";
 		AnimInstance->Montage_JumpToSection(SlotName);
-		UE_LOG(LogTemp,Warning,TEXT("PlayingMontage"));
+		UE_LOG(LogTemp,Warning,TEXT("PlayingFireMontage"));
+	}
+}
+
+void ABlasterCharacter::PlayHitReactMontage()
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SlotName = "HitFront";
+		AnimInstance->Montage_JumpToSection(SlotName);
+		UE_LOG(LogTemp,Warning,TEXT("PlayHitReactMontage"));
 	}
 }
 
@@ -326,6 +337,34 @@ void ABlasterCharacter::FireButtonReleased()
 	}
 }
 
+void ABlasterCharacter::HideCharacterWhenCameraClose()
+{
+	if (!IsLocallyControlled() || FollowCamera == nullptr) return;
+
+	float CameraDistance = FVector::Distance(FollowCamera->GetComponentLocation(),GetActorLocation());
+	if (CameraDistance < CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+		if (CombatComponent && CombatComponent->EquippedWeapon)
+		{
+			// CombatComponent->EquippedWeapon->Get_WeaponMesh()->SetVisibility(false);
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (CombatComponent && CombatComponent->EquippedWeapon)
+		{
+			// CombatComponent->EquippedWeapon->Get_WeaponMesh()->SetVisibility(true);
+		}
+	}
+}
+
+void ABlasterCharacter::MulticastHitReact_Implementation()
+{
+	PlayHitReactMontage();
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (OverlappingWeapon)
@@ -371,6 +410,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
+	HideCharacterWhenCameraClose();
 }
 
 
