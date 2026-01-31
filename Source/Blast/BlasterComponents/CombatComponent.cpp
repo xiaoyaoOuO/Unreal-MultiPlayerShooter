@@ -58,7 +58,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 
 	if (bScreenToWorld)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("detecting crosshair"));
 		FVector StartLocation = CrosshairWorldPosition;
 		FVector EndLocation = StartLocation + CrosshairWorldDirection * TRACE_LENGTH;
 
@@ -68,6 +67,17 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			EndLocation,
 			ECollisionChannel::ECC_Visibility
 		);
+		if (bHit)
+		{
+			//TODO：目前是瞄准到敌人变红色，后续考虑命中再变红
+			if (const AActor *HitActor = TraceHitResult.GetActor(); HitActor && HitActor->Implements<UInteractWithCrosshairsInterface>())
+			{
+				HUDPackage.CrosshairColor = FLinearColor::Red;
+			}else
+			{
+				HUDPackage.CrosshairColor = FLinearColor::White;
+			}
+		}
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = EndLocation;
@@ -86,7 +96,6 @@ void UCombatComponent::UpdateHUD(float DeltaTime)
 		HUD = HUD == nullptr ? Cast<ABlasterHUD>(Controller->GetHUD()) : HUD;
 		if (HUD)
 		{
-			FHUDPackage HUDPackage;
 			if (EquippedWeapon)
 			{
 				HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairCenter;

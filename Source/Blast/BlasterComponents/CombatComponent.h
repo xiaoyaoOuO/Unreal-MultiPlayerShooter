@@ -65,6 +65,8 @@ public:
 
 	FVector HitTargetPoint;
 
+	FHUDPackage HUDPackage;
+
 	//瞄准调整FOV
 	float CurrentFOV;
 	float DefaultFOV;
