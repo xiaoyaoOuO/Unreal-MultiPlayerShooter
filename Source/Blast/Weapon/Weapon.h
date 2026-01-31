@@ -62,6 +62,7 @@ public:
 	virtual void Fire(const FVector& HitTarget);
 
 	USkeletalMeshComponent* Get_WeaponMesh() const;
+	
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
 	class USkeletalMeshComponent* WeaponMesh;
@@ -98,4 +99,12 @@ public:
 	
 	UPROPERTY(EditAnywhere,Category="Crosshair")
 	UTexture2D* CrosshairBottom;
+
+	/*
+	 *武器瞄准时的FOV
+	 */
+	UPROPERTY(EditAnywhere,Category="Zoom")
+	float ZoomFOV = 30.f;
+	UPROPERTY(EditAnywhere,Category="Zoom")
+	float ZoomSpeed = 10.f;
 };

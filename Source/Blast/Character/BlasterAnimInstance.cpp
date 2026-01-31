@@ -66,6 +66,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		{
 			if (BlasterCharacter->IsLocallyControlled())
 			{
+				bIsLocalControl = true;
+				// const FTransform WeaponSocketTransform = MuzzleFlash->GetSocketTransform(EquippedWeaponMesh);
 				const FTransform RightHandTransform = BlasterCharacterMesh->GetSocketTransform("Hand_R");
 				//获取瞄准方向
 				FVector HitTarget = BlasterCharacter->Get_HitResult();
@@ -74,13 +76,13 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 					RightHandTransform.GetLocation(),
 					RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() -HitTarget)
 				);
+				// DrawDebugLine(
+				// 	GetWorld(),WeaponSocketTransform.GetLocation(),WeaponSocketTransform.GetLocation() + WeaponSocketTransform.GetRotation().Vector()*100.f,FColor::Red
+				// );
+				// DrawDebugLine(
+				// 	GetWorld(),WeaponSocketTransform.GetLocation(),HitTarget,FColor::Blue
+				// );
 			}
-			// DrawDebugLine(
-			// 	GetWorld(),WeaponSocketTransform.GetLocation(),WeaponSocketTransform.GetLocation() + WeaponSocketTransform.GetRotation().Vector()*100.f,FColor::Red
-			// );
-			// DrawDebugLine(
-			// 	GetWorld(),WeaponSocketTransform.GetLocation(),HitTarget,FColor::Blue
-			// );
 		}
 	}
 }

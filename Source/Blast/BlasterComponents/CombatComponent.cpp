@@ -4,6 +4,7 @@
 #include "CombatComponent.h"
 
 #include "Blast/Weapon/Weapon.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -38,7 +39,7 @@ void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
 	UE_LOG(LogTemp,Warning,TEXT("TraceUnderCrosshairs"));
-	FVector2D ViewPortSize;
+	FVector2D ViewPortSize = FVector2D::ZeroVector;
 	if (GEngine && GEngine->GameViewport)
 	{
 		GEngine->GameViewport->GetViewportSize(ViewPortSize);
@@ -74,7 +75,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	}
 }
 
-void UCombatComponent::UpdateHUD(float deltaTime)
+void UCombatComponent::UpdateHUD(float DeltaTime)
 {
 	if (Character == nullptr || Character->Controller == nullptr) return;
 
@@ -115,15 +116,43 @@ void UCombatComponent::UpdateHUD(float deltaTime)
 			//跳跃扩散更大
 			if (Character->GetCharacterMovement()->IsFalling())
 			{
-				InAirFactor = FMath::FInterpTo(InAirFactor,2.25f,deltaTime,2.25f);
+				InAirFactor = FMath::FInterpTo(InAirFactor,2.25f,DeltaTime,2.25f);
 			}else
 			{
-				InAirFactor = FMath::FInterpTo(InAirFactor,0.f,deltaTime,30.f);
+				InAirFactor = FMath::FInterpTo(InAirFactor,0.f,DeltaTime,30.f);
 			}
-			HUDPackage.SpreadSize = WalkSpeedFactor + InAirFactor;
+
+			if (bAiming)
+			{
+				AimFactor = FMath::FInterpTo(AimFactor,0.58f,DeltaTime,5.f);
+			}else
+			{
+				AimFactor = FMath::FInterpTo(AimFactor,0.f,DeltaTime,30.f);
+			}
+
+			ShootingFactor = FMath::FInterpTo(ShootingFactor,0.f,DeltaTime,40.f);
+			HUDPackage.SpreadSize = 0.5f + WalkSpeedFactor + InAirFactor + ShootingFactor - AimFactor;
 			
 			HUD->SetHUDPackage(HUDPackage);
 		}
+	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if (EquippedWeapon == nullptr) return;
+	ZoomFOV = EquippedWeapon->ZoomFOV;
+	ZoomSpeed = EquippedWeapon->ZoomSpeed;
+	if (bAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV,ZoomFOV,DeltaTime,ZoomSpeed);
+	}else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV,DefaultFOV,DeltaTime,ZoomSpeed);
+	}
+	if (Character && Character->GetFollowCamera())
+	{
+		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 
@@ -134,6 +163,8 @@ void UCombatComponent::BeginPlay()
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseMoveSpeed;
+		DefaultFOV = Character->GetFollowCamera()->FieldOfView;
+		CurrentFOV = DefaultFOV;
 	}
 }
 
@@ -150,10 +181,14 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
-	this->HitTargetPoint = HitResult.ImpactPoint;
-	UpdateHUD(DeltaTime);
+	if (Character && Character->IsLocallyControlled())
+	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		this->HitTargetPoint = HitResult.ImpactPoint;
+		InterpFOV(DeltaTime);
+		UpdateHUD(DeltaTime);
+	}
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -196,6 +231,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
+		ShootingFactor = 0.2f;
 		ServerFire(HitResult.ImpactPoint);
 	}
 }

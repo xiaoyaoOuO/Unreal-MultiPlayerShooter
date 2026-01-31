@@ -80,9 +80,10 @@ public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
-	float Get_AO_Yaw() const {return AO_Yaw;}
-	float Get_AO_Pitch() const {return AO_Pitch;}
-	ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	AWeapon* Get_EquippedWeapon();
 	FVector Get_HitResult();
+	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
+	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
+	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 };

@@ -35,7 +35,9 @@ public:
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
-	void UpdateHUD(float deltaTime);
+	void UpdateHUD(float DeltaTime);
+
+	void InterpFOV(float DeltaTime);
 protected:
 	virtual void BeginPlay() override;
 
@@ -63,8 +65,16 @@ public:
 
 	FVector HitTargetPoint;
 
+	//瞄准调整FOV
+	float CurrentFOV;
+	float DefaultFOV;
+	float ZoomFOV = 30.f;
+	float ZoomSpeed = 10.f;
+
 private:
 	//准心扩散因子
 	float WalkSpeedFactor;
 	float InAirFactor;
+	float AimFactor;
+	float ShootingFactor;
 };
