@@ -57,6 +57,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	float AO_Pitch;
 
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bRotateRootBone;
+
 	//校准瞄准旋转
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	FRotator TargetRotation;

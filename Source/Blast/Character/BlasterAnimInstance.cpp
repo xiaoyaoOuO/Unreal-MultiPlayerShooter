@@ -46,11 +46,11 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	AO_Yaw = BlasterCharacter->Get_AO_Yaw();
 	AO_Pitch = BlasterCharacter->Get_AO_Pitch();
+	bRotateRootBone = BlasterCharacter->Get_bRotateRootBone();
 
-	USkeletalMeshComponent* EquippedWeaponMesh;
-    USkeletalMeshComponent* BlasterCharacterMesh;
-	if (bIsEquipped && EquippedWeapon && (EquippedWeaponMesh = EquippedWeapon->Get_WeaponMesh())
-		&& (BlasterCharacterMesh = BlasterCharacter->GetMesh()))
+	USkeletalMeshComponent* EquippedWeaponMesh = EquippedWeapon->Get_WeaponMesh();
+    USkeletalMeshComponent* BlasterCharacterMesh = BlasterCharacter->GetMesh();
+	if (bIsEquipped && EquippedWeapon && EquippedWeaponMesh && BlasterCharacterMesh)
 	{
 		LeftHandTransform = EquippedWeaponMesh->GetSocketTransform(FName("LeftHandSocket"));
 		FVector OutPosition;
@@ -60,7 +60,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
 		
 		/*
-		 * 修正武器朝向
+		 * 修正武器朝向,TODO：复制玩家目前不会修正
 		*/
 		if (const USkeletalMeshSocket* MuzzleFlash = EquippedWeaponMesh->GetSocketByName("MuzzleFlash"))
 		{

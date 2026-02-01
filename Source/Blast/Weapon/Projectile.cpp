@@ -76,8 +76,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 {
 	if (OtherActor)
 	{
-		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
-		if (HitCharacter)
+		if (ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor))
 		{
 			HitCharacter->MulticastHitReact();
 		}

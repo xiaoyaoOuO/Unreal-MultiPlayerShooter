@@ -57,6 +57,17 @@ private:
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
 
+	/*
+	 * 优化网络传输，人物转向只在服务端和非拥有客户端进行
+	 */
+	bool bRotateRootBone;
+	float TurnThreshold = 0.5f;
+	float ProxyYaw;
+	float TimeSinceLastMovementReplication;
+	FRotator ProxyLastRotationFrame;
+	FRotator ProxyRotationFrame;
+	
+	
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
 
@@ -69,6 +80,7 @@ private:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void OnRep_ReplicatedMovement() override;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -79,11 +91,14 @@ protected:
 	void AimButtonPressed();
 	void AImButtonReleased();
 	void TurnInPlace(float DeltaTime);
+	void Calculate_AO_Pitch();
 	void AimOffset(float DeltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void HideCharacterWhenCameraClose();
+	void SimProxiesTurn();
 
+	float Calculate_Speed();
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -97,6 +112,7 @@ public:
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
 	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
+	FORCEINLINE bool  Get_bRotateRootBone() const {return bRotateRootBone;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 };
