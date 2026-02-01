@@ -19,6 +19,7 @@ UCombatComponent::UCombatComponent()
 
 	BaseMoveSpeed = 600.f;
 	AimingMoveSpeed = 400.f;
+	bCanFire = true;
 }
 
 void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarget)
@@ -190,6 +191,30 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::StartFireDelay()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+
+	FireDelay = EquippedWeapon->FireDelay;
+	bCanFire = false;
+	Character->GetWorldTimerManager().SetTimer(
+		FireDelayTimer,
+		this,
+		&UCombatComponent::FireTimerFinish,
+		FireDelay
+	);
+}
+
+void UCombatComponent::FireTimerFinish()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+	bCanFire = true;
+	if (bFireButtonPressed && EquippedWeapon->bAutomaticFire)
+	{
+		Fire();
+	}
+}
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -237,15 +262,22 @@ void UCombatComponent::SetAiming(bool bIsAiming)
     }
 }
 
+void UCombatComponent::Fire()
+{
+	if (bCanFire)
+	{
+		ShootingFactor = 0.2f;
+		ServerFire(HitTargetPoint);
+		StartFireDelay();
+	}
+}
+
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 	if (bFireButtonPressed)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ShootingFactor = 0.2f;
-		ServerFire(HitResult.ImpactPoint);
+		Fire();
 	}
 }
 

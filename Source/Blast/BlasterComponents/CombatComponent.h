@@ -22,6 +22,7 @@ public:
 	friend class ABlasterCharacter;
 	void EquipWeapon(AWeapon* Weapon);
 	void SetAiming(bool bIsAiming);
+	void Fire();
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(Server, Reliable)
@@ -79,4 +80,13 @@ private:
 	float InAirFactor;
 	float AimFactor;
 	float ShootingFactor;
+
+	/*
+	 * 开火属性
+	*/
+	bool bCanFire = true;
+	float FireDelay;
+	FTimerHandle FireDelayTimer;
+	void StartFireDelay();
+	void FireTimerFinish();
 };

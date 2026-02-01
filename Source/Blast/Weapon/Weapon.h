@@ -107,4 +107,12 @@ public:
 	float ZoomFOV = 30.f;
 	UPROPERTY(EditAnywhere,Category="Zoom")
 	float ZoomSpeed = 10.f;
+
+	/*
+	 * 开火属性
+	 */
+	UPROPERTY(EditAnywhere,Category="Weapon Attributes")
+	float FireDelay = 0.15f;
+	UPROPERTY(EditAnywhere,Category="Weapon Attributes")
+	bool bAutomaticFire = true;
 };

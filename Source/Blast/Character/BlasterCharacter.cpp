@@ -114,6 +114,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,OverlappingWeapon,COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,AO_Yaw,COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,TurningInPlace,COND_SkipOwner);
+	DOREPLIFETIME(ABlasterCharacter,CurrentHealth);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -265,6 +266,11 @@ float ABlasterCharacter::Calculate_Speed()
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.f;
 	return Velocity.Size();
+}
+
+void ABlasterCharacter::OnRep_CurrentHealth()
+{
+	
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)

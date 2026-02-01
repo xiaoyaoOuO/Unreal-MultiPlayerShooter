@@ -66,7 +66,15 @@ private:
 	float TimeSinceLastMovementReplication;
 	FRotator ProxyLastRotationFrame;
 	FRotator ProxyRotationFrame;
-	
+
+	/*
+	 * 玩家状态
+	 */
+	UPROPERTY(EditAnywhere,Category= "Character Stats")
+	float MaxHealth;
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentHealth,VisibleAnywhere,Category= "Character Stats")
+	float CurrentHealth;
 	
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
@@ -99,6 +107,9 @@ protected:
 	void SimProxiesTurn();
 
 	float Calculate_Speed();
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);

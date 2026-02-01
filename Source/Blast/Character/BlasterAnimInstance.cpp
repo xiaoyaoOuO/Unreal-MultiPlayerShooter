@@ -48,9 +48,9 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	AO_Pitch = BlasterCharacter->Get_AO_Pitch();
 	bRotateRootBone = BlasterCharacter->Get_bRotateRootBone();
 
-	USkeletalMeshComponent* EquippedWeaponMesh = EquippedWeapon->Get_WeaponMesh();
+	USkeletalMeshComponent* EquippedWeaponMesh;
     USkeletalMeshComponent* BlasterCharacterMesh = BlasterCharacter->GetMesh();
-	if (bIsEquipped && EquippedWeapon && EquippedWeaponMesh && BlasterCharacterMesh)
+	if (bIsEquipped && EquippedWeapon && (EquippedWeaponMesh = EquippedWeapon->Get_WeaponMesh()) && BlasterCharacterMesh)
 	{
 		LeftHandTransform = EquippedWeaponMesh->GetSocketTransform(FName("LeftHandSocket"));
 		FVector OutPosition;
