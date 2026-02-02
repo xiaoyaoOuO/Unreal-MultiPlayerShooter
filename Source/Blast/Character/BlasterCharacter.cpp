@@ -76,14 +76,23 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 }
 
+void ABlasterCharacter::UpdateHealthHUD()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetBlasterPlayerHealth(CurrentHealth,MaxHealth);
+	}
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
-	if (BlasterPlayerController)
+	CurrentHealth = MaxHealth;
+	UpdateHealthHUD();
+	if (HasAuthority())
 	{
-		BlasterPlayerController->SetBlasterPlayerHealth(100,100);
+		OnTakeAnyDamage.AddDynamic(this,&ABlasterCharacter::ReceiveDamage);
 	}
 }
 
@@ -273,7 +282,16 @@ float ABlasterCharacter::Calculate_Speed()
 
 void ABlasterCharacter::OnRep_CurrentHealth()
 {
-	
+	UpdateHealthHUD();
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage,0.f,MaxHealth);
+	UpdateHealthHUD();
+	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
@@ -371,11 +389,6 @@ void ABlasterCharacter::SimProxiesTurn()
 	{
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
-}
-
-void ABlasterCharacter::MulticastHitReact_Implementation()
-{
-	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

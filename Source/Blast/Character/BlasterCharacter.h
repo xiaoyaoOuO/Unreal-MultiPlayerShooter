@@ -47,6 +47,7 @@ private:
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	void UpdateHealthHUD();
 
 	FRotator StartingAimRotation;
 	
@@ -114,15 +115,22 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentHealth();
 
+	UFUNCTION()
+    /*即 void(ABlasterCharacter::*)(AActor*,
+     *float,
+     *const UDamageType*,
+     *AController*,
+     *AActor*))，
+	*/
+	void ReceiveDamage(AActor* DamagedActor,float Damage,const UDamageType* DamageType,AController* InstigatedBy,AActor* DamageCauser);
+
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	AWeapon* Get_EquippedWeapon();
-	FVector Get_HitResult();
+	FVector  Get_HitResult();
 	
-	UFUNCTION(NetMulticast,Unreliable)
-	void MulticastHitReact();
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
 	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
