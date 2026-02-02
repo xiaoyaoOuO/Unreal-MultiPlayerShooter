@@ -2,6 +2,13 @@
 
 
 #include "BlasterHUD.h"
+#include "GameFramework/PlayerController.h"
+
+void ABlasterHUD::BeginPlay()
+{
+	Super::BeginPlay();
+	AddCharacterOverlay();
+}
 
 void ABlasterHUD::DrawHUD()
 {
@@ -51,5 +58,21 @@ void ABlasterHUD::DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCe
 			1.f,
 			DrawColor
 		);
+	}
+}
+
+void ABlasterHUD::AddCharacterOverlay()
+{
+	if (APlayerController* PlayerController = GetOwningPlayerController())
+	{
+		if (CharacterOverlayClass)
+		{
+			CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController,CharacterOverlayClass);
+			if (CharacterOverlay)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("CharacterOverlay Added to Viewport"));
+				CharacterOverlay->AddToViewport();
+			}
+		}
 	}
 }

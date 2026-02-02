@@ -79,7 +79,12 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetBlasterPlayerHealth(100,100);
+	}
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -138,7 +143,6 @@ void ABlasterCharacter::PlayFireMontage()
 		bool bAming = CombatComponent->bAiming;
 		FName SlotName = bAming ? "RifleAim":"RifleHip";
 		AnimInstance->Montage_JumpToSection(SlotName);
-		UE_LOG(LogTemp,Warning,TEXT("PlayingFireMontage"));
 	}
 }
 
@@ -149,7 +153,6 @@ void ABlasterCharacter::PlayHitReactMontage()
 		AnimInstance->Montage_Play(HitReactMontage);
 		FName SlotName = "HitFront";
 		AnimInstance->Montage_JumpToSection(SlotName);
-		UE_LOG(LogTemp,Warning,TEXT("PlayHitReactMontage"));
 	}
 }
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "Blast/HUD/CharacterOverlay.h"
 #include "BlasterHUD.generated.h"
 
 
@@ -33,10 +34,19 @@ class BLAST_API ABlasterHUD : public AHUD
 
 private:
 	FHUDPackage HUD;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUserWidget> CharacterOverlayClass;
+
+	UCharacterOverlay* CharacterOverlay;
 	float CrosshairSpreadMax = 16.f;
+	
 public:
+	virtual void BeginPlay() override;
 	virtual void DrawHUD() override;
 	void DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCenter,FLinearColor DrawColor,FVector2D Spread = FVector2D::ZeroVector);
+	void AddCharacterOverlay();
 	
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;};
+	FORCEINLINE UCharacterOverlay* GetCharacterOverlay() const {return CharacterOverlay;};
 };

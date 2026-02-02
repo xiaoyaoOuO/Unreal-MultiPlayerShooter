@@ -39,6 +39,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UCombatComponent* CombatComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	class ABlasterPlayerController* BlasterPlayerController;
+
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
 	

@@ -40,7 +40,6 @@ void AProjectile::BeginPlay()
 
 	if (Tracer)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Tracer"));
 		TracerParticleComponent = UGameplayStatics::SpawnEmitterAttached(
 			Tracer,
 			BoxComponent,
