@@ -58,7 +58,13 @@ private:
 	
 	float AO_Pitch;
 
+	/*
+	 * 死亡和重生
+	 */
 	bool bShouldElim;
+	FTimerHandle RespawnTimer;
+	UPROPERTY(EditDefaultsOnly)
+	float RespawnDelay = 3.f;
 
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
@@ -115,6 +121,7 @@ protected:
 	void HideCharacterWhenCameraClose();
 	void SimProxiesTurn();
 	void PlayElimMontage();
+	void RespawnTimerFinished();
 
 	float Calculate_Speed();
 

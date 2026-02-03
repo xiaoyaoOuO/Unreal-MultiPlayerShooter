@@ -53,7 +53,7 @@ ABlasterCharacter::ABlasterCharacter()
 
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	bShouldElim = false;
-	
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SetNetUpdateFrequency(66.f);
 	SetMinNetUpdateFrequency(33.f);
 }
@@ -304,6 +304,13 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 			BlasterGameMode->CharacterElim(this,BlasterPlayerController,Cast<ABlasterPlayerController>(InstigatedBy));
+			GetWorldTimerManager().SetTimer(
+				RespawnTimer,
+				this,
+				&ABlasterCharacter::RespawnTimerFinished,
+				RespawnDelay,
+				false
+			);
 		}
 	}
 }
@@ -413,6 +420,16 @@ void ABlasterCharacter::PlayElimMontage()
 		{
 			AnimInstance->Montage_Play(ElimMontage);
 		}
+	}
+}
+
+void ABlasterCharacter::RespawnTimerFinished()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterGameMode && BlasterPlayerController)
+	{
+		BlasterGameMode->RespawnCharacter(this,BlasterPlayerController);
 	}
 }
 
