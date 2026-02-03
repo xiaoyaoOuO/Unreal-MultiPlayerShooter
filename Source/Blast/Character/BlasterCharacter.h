@@ -6,6 +6,7 @@
 #include "Blast/TurningInPlace/TurningInPlace.h"
 #include "GameFramework/Character.h"
 #include "Blast/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Components/TimelineComponent.h"
 #include "BlasterCharacter.generated.h"
 
 
@@ -99,7 +100,29 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* ElimMontage;
-	
+
+
+	/*
+	 * 角色死亡时消融特效
+	 */
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* DissolveMaterialInstance;
+
+	UPROPERTY(VisibleDefaultsOnly,Category = Elim)
+	UMaterialInstanceDynamic* DissolveMaterialInstanceDynamic;
+
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+
+	FOnTimelineFloat DissolveTimelineTrack;
+
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UCurveFloat* DissolveCurve;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+
+	void StartDissolve();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

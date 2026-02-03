@@ -13,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Materials/MaterialAttributeDefinitionMap.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -56,6 +57,8 @@ ABlasterCharacter::ABlasterCharacter()
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SetNetUpdateFrequency(66.f);
 	SetMinNetUpdateFrequency(33.f);
+
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline"));
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
@@ -84,6 +87,24 @@ void ABlasterCharacter::UpdateHealthHUD()
 	if (BlasterPlayerController)
 	{
 		BlasterPlayerController->SetBlasterPlayerHealth(CurrentHealth,MaxHealth);
+	}
+}
+
+void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DissolveMaterialInstanceDynamic)
+	{
+		DissolveMaterialInstanceDynamic->SetScalarParameterValue("Dissolve",DissolveValue);
+	}
+}
+
+void ABlasterCharacter::StartDissolve()
+{
+	if (DissolveTimeline && DissolveCurve)
+	{
+		DissolveTimelineTrack.BindDynamic(this, &ABlasterCharacter::UpdateDissolveMaterial);
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTimelineTrack);
+		DissolveTimeline->Play();
 	}
 }
 
@@ -437,6 +458,15 @@ void ABlasterCharacter::Elim()
 {
 	bShouldElim = true;
 	PlayElimMontage();
+
+	if (DissolveMaterialInstance)
+	{
+		DissolveMaterialInstanceDynamic = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this,FName("Dissolve"));
+		DissolveMaterialInstanceDynamic->SetScalarParameterValue(FName("Dissolve"),-0.2f);
+		DissolveMaterialInstanceDynamic->SetScalarParameterValue(FName("Glow"),200.f);
+		GetMesh()->SetMaterial(0,DissolveMaterialInstanceDynamic);
+	}
+	StartDissolve();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
