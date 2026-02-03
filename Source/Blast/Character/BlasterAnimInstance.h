@@ -60,6 +60,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	bool bRotateRootBone;
 
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bElimmed;
+
 	//校准瞄准旋转
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	FRotator TargetRotation;
@@ -75,5 +78,4 @@ private:
 	FRotator CharacterRotationLastFrame;
 	FRotator CharacterRotation;
 	FRotator DeltaRotation;
-
 };

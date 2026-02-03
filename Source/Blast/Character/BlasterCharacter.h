@@ -58,6 +58,8 @@ private:
 	
 	float AO_Pitch;
 
+	bool bShouldElim;
+
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
 
@@ -88,6 +90,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* ElimMontage;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -109,6 +114,7 @@ protected:
 	void FireButtonReleased();
 	void HideCharacterWhenCameraClose();
 	void SimProxiesTurn();
+	void PlayElimMontage();
 
 	float Calculate_Speed();
 
@@ -128,6 +134,7 @@ public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	void Elim();
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	
@@ -135,6 +142,7 @@ public:
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
 	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
 	FORCEINLINE bool  Get_bRotateRootBone() const {return bRotateRootBone;}
+	FORCEINLINE bool  ShouldElim() const {return bShouldElim;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 };

@@ -4,6 +4,7 @@
 #include "BlasterCharacter.h"
 #include "Blast/Blast.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
+#include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/HUD/OverHeadWidget.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
@@ -51,6 +52,7 @@ ABlasterCharacter::ABlasterCharacter()
     ACharacter::GetMovementComponent()->NavAgentProps.bCanCrouch = true;
 
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	bShouldElim = false;
 	
 	SetNetUpdateFrequency(66.f);
 	SetMinNetUpdateFrequency(33.f);
@@ -284,6 +286,10 @@ void ABlasterCharacter::OnRep_CurrentHealth()
 {
 	UpdateHealthHUD();
 	PlayHitReactMontage();
+	if (CurrentHealth <= 0.f)
+	{
+		Elim();
+	}
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
@@ -292,6 +298,14 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage,0.f,MaxHealth);
 	UpdateHealthHUD();
 	PlayHitReactMontage();
+	if (CurrentHealth <= 0.f)
+	{
+		if (ABlasterGameMode* BlasterGameMode =  Cast<ABlasterGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+			BlasterGameMode->CharacterElim(this,BlasterPlayerController,Cast<ABlasterPlayerController>(InstigatedBy));
+		}
+	}
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
@@ -389,6 +403,23 @@ void ABlasterCharacter::SimProxiesTurn()
 	{
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
+}
+
+void ABlasterCharacter::PlayElimMontage()
+{
+	if (ElimMontage)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(ElimMontage);
+		}
+	}
+}
+
+void ABlasterCharacter::Elim()
+{
+	bShouldElim = true;
+	PlayElimMontage();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
