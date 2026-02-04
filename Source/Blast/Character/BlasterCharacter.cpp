@@ -12,9 +12,11 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialAttributeDefinitionMap.h"
 #include "Net/UnrealNetwork.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -124,6 +126,16 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	Super::OnRep_ReplicatedMovement();
 	this->TimeSinceLastMovementReplication = 0.f;
 	SimProxiesTurn();
+}
+
+void ABlasterCharacter::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ElimBot)
+	{
+		ElimBot->DestroyComponent();
+	}
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -459,6 +471,24 @@ void ABlasterCharacter::Elim()
 	bShouldElim = true;
 	PlayElimMontage();
 
+	//掉落武器
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
+
+	//禁用移动，禁用碰撞
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+	{
+		DisableInput(BlasterPlayerController);
+	}
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	
+	//溶解特效
 	if (DissolveMaterialInstance)
 	{
 		DissolveMaterialInstanceDynamic = UMaterialInstanceDynamic::Create(DissolveMaterialInstance,this,FName("Dissolve"));
@@ -467,6 +497,21 @@ void ABlasterCharacter::Elim()
 		GetMesh()->SetMaterial(0,DissolveMaterialInstanceDynamic);
 	}
 	StartDissolve();
+
+	if (ElimBotParticle)
+	{
+		FVector Player = GetActorLocation();
+		FVector BotSpawnLocation = FVector(Player.X,Player.Y,Player.Z + 200.f);
+		ElimBot = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ElimBotParticle,
+			BotSpawnLocation
+		);
+	}
+	if (BotSoundCue)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(),BotSoundCue,GetActorLocation());
+	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

@@ -60,6 +60,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void Fire(const FVector& HitTarget);
+	virtual void Dropped();
 
 	USkeletalMeshComponent* Get_WeaponMesh() const;
 	

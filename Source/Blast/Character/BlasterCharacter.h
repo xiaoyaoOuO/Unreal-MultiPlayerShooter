@@ -67,6 +67,17 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float RespawnDelay = 3.f;
 
+	/*
+	 * 回收机器人
+	 */
+	UPROPERTY(EditAnywhere,Category= "Elim")
+	UParticleSystem* ElimBotParticle;
+	
+	UPROPERTY(EditAnywhere,Category= "Elim")
+	USoundCue* BotSoundCue;
+	
+	UParticleSystemComponent* ElimBot;
+
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
 
@@ -127,6 +138,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void OnRep_ReplicatedMovement() override;
+	virtual void Destroyed() override;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

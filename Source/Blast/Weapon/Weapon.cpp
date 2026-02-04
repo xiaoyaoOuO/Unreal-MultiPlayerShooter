@@ -22,7 +22,7 @@ AWeapon::AWeapon()
 	SetRootComponent(WeaponMesh);
 
 	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>("AreaSphere");
@@ -100,7 +100,22 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 			//在服务器执行，所以不用判断authority
 			ShowPickUpWidget(false);
 			AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			break;
+			WeaponMesh->SetEnableGravity(false);
+			WeaponMesh->SetSimulatePhysics(false);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+				break;
+		}
+		case EWeaponState::EWS_Dropped:
+		{
+				//客户端和服务器都执行，需要判断authority
+			if (HasAuthority())
+			{
+				AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+			}
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+			WeaponMesh->SetSimulatePhysics(true);
+			WeaponMesh->SetEnableGravity(true);
+				break;
 		}
 		default:
 			break;
@@ -115,6 +130,17 @@ void AWeapon::OnRep_WeaponState() const
 		case EWeaponState::EWS_Equipped:
 		{
 			ShowPickUpWidget(false);
+			WeaponMesh->SetEnableGravity(false);
+			WeaponMesh->SetSimulatePhysics(false);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+				break;
+		}
+		case EWeaponState::EWS_Dropped:
+		{
+			// WeaponMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+			WeaponMesh->SetSimulatePhysics(true);
+			WeaponMesh->SetEnableGravity(true);
 				break;
 		}
 		default:
@@ -153,6 +179,14 @@ void AWeapon::Fire(const FVector& HitTarget)
 			}
 		}
 	}
+}
+
+void AWeapon::Dropped()
+{
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	WeaponMesh->DetachFromComponent(DetachmentTransformRules);
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	SetOwner(nullptr);
 }
 
 USkeletalMeshComponent* AWeapon::Get_WeaponMesh() const

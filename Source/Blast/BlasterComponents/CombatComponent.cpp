@@ -186,6 +186,12 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (Character && EquippedWeapon)
 	{
+		//装备后直接在本地先修改state，先取消物理模拟，这样Attach就不会产生冲突
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket"))
+		{
+			HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 		Character->bUseControllerRotationYaw = true;
 	}
