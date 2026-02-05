@@ -16,4 +16,6 @@ class BLAST_API ABlasterGameMode : public AGameMode
 public:
 	virtual void CharacterElim(class ABlasterCharacter* ElimmedCharacter, class ABlasterPlayerController* VictimController, class ABlasterPlayerController* AttackerController);
 	virtual void RespawnCharacter(ACharacter* ElimmedCharacter, AController* VictimController);
+private:
+	float ElimScore = 1.f;
 };

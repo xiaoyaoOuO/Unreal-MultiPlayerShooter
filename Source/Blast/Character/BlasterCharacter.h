@@ -43,6 +43,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class ABlasterPlayerController* BlasterPlayerController;
 
+	UPROPERTY(VisibleAnywhere)
+	class ABlasterPlayerState* BlasterPlayerState;
+
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
 	
@@ -157,6 +160,7 @@ protected:
 	void SimProxiesTurn();
 	void PlayElimMontage();
 	void RespawnTimerFinished();
+	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
 
 	float Calculate_Speed();
 
@@ -185,6 +189,8 @@ public:
 	FORCEINLINE float Get_AO_Pitch() const {return AO_Pitch;}
 	FORCEINLINE bool  Get_bRotateRootBone() const {return bRotateRootBone;}
 	FORCEINLINE bool  ShouldElim() const {return bShouldElim;}
+	FORCEINLINE float Get_CurrentHealth() const {return CurrentHealth;}
+	FORCEINLINE float Get_MaxHealth() const {return MaxHealth;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 };

@@ -19,6 +19,8 @@ private:
 	ABlasterHUD* BlasterHUD;
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
 public:
 	void SetBlasterPlayerHealth(float Health,float MaxHealth);
+	void SetBlasterPlayerScore(float Score);
 };

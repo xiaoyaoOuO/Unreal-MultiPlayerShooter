@@ -5,7 +5,7 @@
 #include "Blast/Blast.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/GameMode/BlasterGameMode.h"
-#include "Blast/HUD/OverHeadWidget.h"
+#include "Blast/PlayerState/BlasterPlayerState.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -14,7 +14,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Materials/MaterialAttributeDefinitionMap.h"
 #include "Net/UnrealNetwork.h"
 #include "Particles/ParticleSystemComponent.h"
 
@@ -184,8 +183,8 @@ void ABlasterCharacter::PlayFireMontage()
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
-		bool bAming = CombatComponent->bAiming;
-		FName SlotName = bAming ? "RifleAim":"RifleHip";
+		bool bAiming = CombatComponent->bAiming;
+		FName SlotName = bAiming ? "RifleAim":"RifleHip";
 		AnimInstance->Montage_JumpToSection(SlotName);
 	}
 }
@@ -466,6 +465,18 @@ void ABlasterCharacter::RespawnTimerFinished()
 	}
 }
 
+void ABlasterCharacter::PollInit()
+{
+	if (BlasterPlayerState == nullptr)
+	{
+		BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+		if (BlasterPlayerState)
+		{
+			BlasterPlayerState->UpdatePlayerScore(BlasterPlayerState->GetScore());
+		}
+	}
+}
+
 void ABlasterCharacter::Elim()
 {
 	bShouldElim = true;
@@ -571,6 +582,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 		Calculate_AO_Pitch();
 	}
 	HideCharacterWhenCameraClose();
+	PollInit();
 }
 
 

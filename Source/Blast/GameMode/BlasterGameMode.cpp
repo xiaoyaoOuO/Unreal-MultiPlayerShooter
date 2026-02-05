@@ -4,15 +4,30 @@
 #include "BlasterGameMode.h"
 
 #include "Blast/Character/BlasterCharacter.h"
+#include "Blast/PlayerController/BlasterPlayerController.h"
+#include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
+//执行在服务端
 void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
                                      ABlasterPlayerController* VictimController, ABlasterPlayerController* AttackerController)
 {
+	//角色死亡
 	if (ElimmedCharacter)
 	{
 		ElimmedCharacter->Elim();
+	}
+	if (AttackerController)
+	{
+		ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>();
+		ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
+		if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
+		{
+			float Score = AttackerPlayerState->GetScore();
+			Score += ElimScore;
+			AttackerPlayerState->UpdatePlayerScore(Score);
+		}
 	}
 }
 
