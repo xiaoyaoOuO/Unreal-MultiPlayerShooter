@@ -27,6 +27,13 @@ void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
 			AttackerPlayerState->AddPlayerScore(ElimScore);
 		}
 	}
+	if (VictimController)
+	{
+		if (ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>())
+		{
+			VictimPlayerState->AddPlayerDefeat(1);
+		}
+	}
 }
 
 void ABlasterGameMode::RespawnCharacter(ACharacter* ElimmedCharacter, AController* ElimmedController)

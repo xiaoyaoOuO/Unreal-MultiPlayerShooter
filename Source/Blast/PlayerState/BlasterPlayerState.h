@@ -16,9 +16,20 @@ class BLAST_API ABlasterPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnRep_Score() override;
 	void AddPlayerScore(float AddScore);
+	void AddPlayerDefeat(int32 AddDefeat);
+
+	UFUNCTION()
+	virtual void OnRep_DefeatAmount();
 private:
 	ABlasterCharacter* Character;
 	ABlasterPlayerController* PlayerController;
+
+	/*
+	 * State记录的玩家属性
+	 */
+	UPROPERTY(ReplicatedUsing=OnRep_DefeatAmount)
+	int32 DefeatAmount = 0;
 };

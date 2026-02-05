@@ -24,4 +24,7 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* ScoreText;
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* DefeatText;
 };

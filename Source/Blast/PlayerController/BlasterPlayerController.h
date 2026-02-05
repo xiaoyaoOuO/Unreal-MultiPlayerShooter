@@ -23,4 +23,5 @@ protected:
 public:
 	void SetBlasterPlayerHealth(float Health,float MaxHealth);
 	void SetBlasterPlayerScore(float Score);
+	void SetBlasterPlayerDefeat(int32 Defeat);
 };

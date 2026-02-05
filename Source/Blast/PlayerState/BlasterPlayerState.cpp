@@ -3,6 +3,15 @@
 
 #include "BlasterPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
+
+void ABlasterPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABlasterPlayerState,DefeatAmount);
+}
+
 void ABlasterPlayerState::OnRep_Score()
 {
 	Super::OnRep_Score();
@@ -31,3 +40,31 @@ void ABlasterPlayerState::AddPlayerScore(float AddScore)
 		}
 	}
 }
+
+void ABlasterPlayerState::AddPlayerDefeat(int32 AddDefeat)
+{
+	DefeatAmount += AddDefeat;
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		PlayerController = PlayerController != nullptr ? PlayerController : Cast<ABlasterPlayerController>(Character->Controller);
+		if (PlayerController)
+		{
+			PlayerController->SetBlasterPlayerDefeat(DefeatAmount);
+		}
+	}
+}
+
+void ABlasterPlayerState::OnRep_DefeatAmount()
+{
+	Character = Cast<ABlasterCharacter>(GetPawn());
+	if (Character)
+	{
+		PlayerController = PlayerController != nullptr ? PlayerController : Cast<ABlasterPlayerController>(Character->Controller);
+		if (PlayerController)
+		{
+			PlayerController->SetBlasterPlayerDefeat(DefeatAmount);
+		}
+	}
+}
+
