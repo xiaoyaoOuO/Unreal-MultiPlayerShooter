@@ -472,7 +472,7 @@ void ABlasterCharacter::PollInit()
 		BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
 		if (BlasterPlayerState)
 		{
-			BlasterPlayerState->UpdatePlayerScore(BlasterPlayerState->GetScore());
+			BlasterPlayerState->AddPlayerScore(0.f);
 		}
 	}
 }

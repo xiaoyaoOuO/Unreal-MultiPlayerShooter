@@ -17,7 +17,7 @@ class BLAST_API ABlasterPlayerState : public APlayerState
 	GENERATED_BODY()
 public:
 	virtual void OnRep_Score() override;
-	void UpdatePlayerScore(float NewScore);
+	void AddPlayerScore(float AddScore);
 private:
 	ABlasterCharacter* Character;
 	ABlasterPlayerController* PlayerController;

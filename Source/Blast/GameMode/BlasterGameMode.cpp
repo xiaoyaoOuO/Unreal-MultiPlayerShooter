@@ -24,9 +24,7 @@ void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
 		ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
 		if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
 		{
-			float Score = AttackerPlayerState->GetScore();
-			Score += ElimScore;
-			AttackerPlayerState->UpdatePlayerScore(Score);
+			AttackerPlayerState->AddPlayerScore(ElimScore);
 		}
 	}
 }

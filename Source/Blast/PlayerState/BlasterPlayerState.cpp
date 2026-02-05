@@ -18,9 +18,9 @@ void ABlasterPlayerState::OnRep_Score()
 	}
 }
 
-void ABlasterPlayerState::UpdatePlayerScore(float NewScore)
+void ABlasterPlayerState::AddPlayerScore(float AddScore)
 {
-	SetScore(NewScore);
+	SetScore(GetScore() + AddScore);
 	Character = Cast<ABlasterCharacter>(GetPawn());
 	if (Character)
 	{
