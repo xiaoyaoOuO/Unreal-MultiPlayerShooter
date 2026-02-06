@@ -194,6 +194,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		}
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 		Character->bUseControllerRotationYaw = true;
+		// EquippedWeapon->UpdateAmmoAmountHUD();
 	}
 }
 
@@ -247,6 +248,11 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 {
 	if (Character == nullptr || Weapon ==nullptr) return;
 
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+	}
+
 	EquippedWeapon = Weapon;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket"))
@@ -256,6 +262,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 	Weapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 	Character->bUseControllerRotationYaw = true;
+	EquippedWeapon->UpdateAmmoAmountHUD();
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)

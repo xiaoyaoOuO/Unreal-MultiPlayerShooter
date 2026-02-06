@@ -496,6 +496,7 @@ void ABlasterCharacter::Elim()
 	if (BlasterPlayerController)
 	{
 		DisableInput(BlasterPlayerController);
+		BlasterPlayerController->SetBlasterPlayerAmmoAmount(0);
 	}
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);

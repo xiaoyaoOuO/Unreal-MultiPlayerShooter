@@ -6,7 +6,6 @@
 #include "Blast/Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
-#include "DynamicMesh/DynamicMesh3.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 
@@ -56,8 +55,29 @@ void AWeapon::BeginPlay()
 	}
 }
 
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+
+	BlasterPlayerCharacter = Cast<ABlasterCharacter>(GetOwner());
+	if (BlasterPlayerCharacter)
+	{
+		BlasterPlayerController = Cast<ABlasterPlayerController>(BlasterPlayerCharacter->Controller);
+	}else
+	{
+		BlasterPlayerController = nullptr;
+	}
+
+	UpdateAmmoAmountHUD();
+}
+
+void AWeapon::OnRep_AmmoAmount()
+{
+	UpdateAmmoAmountHUD();
+}
+
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                              UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor))
 	{
@@ -72,6 +92,26 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	{
 		BlasterCharacter->SetOverlappingWeapon(nullptr);
 	}
+}
+
+void AWeapon::UpdateAmmoAmountHUD()
+{
+	BlasterPlayerCharacter = BlasterPlayerCharacter == nullptr ?  Cast<ABlasterCharacter>(GetOwner()) : BlasterPlayerCharacter;
+	if (BlasterPlayerCharacter)
+	{
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterPlayerCharacter->Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetBlasterPlayerAmmoAmount(AmmoAmount);
+		}
+	}
+}
+
+void AWeapon::SpendAmmo()
+{
+	AmmoAmount--;
+
+	UpdateAmmoAmountHUD();
 }
 
 
@@ -115,6 +155,8 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 			WeaponMesh->SetSimulatePhysics(true);
 			WeaponMesh->SetEnableGravity(true);
+			BlasterPlayerController = nullptr;
+			BlasterPlayerCharacter = nullptr;
 				break;
 		}
 		default:
@@ -123,7 +165,7 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 }
 
 //同步到客户端，修改UI
-void AWeapon::OnRep_WeaponState() const
+void AWeapon::OnRep_WeaponState()
 {
 	switch (WeaponState)
 	{
@@ -141,6 +183,8 @@ void AWeapon::OnRep_WeaponState() const
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
 			WeaponMesh->SetSimulatePhysics(true);
 			WeaponMesh->SetEnableGravity(true);
+			BlasterPlayerController = nullptr;
+			BlasterPlayerCharacter = nullptr;
 				break;
 		}
 		default:
@@ -153,6 +197,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME(AWeapon, AmmoAmount);
 }
 
 void AWeapon::Fire(const FVector& HitTarget)
@@ -179,6 +224,7 @@ void AWeapon::Fire(const FVector& HitTarget)
 			}
 		}
 	}
+	SpendAmmo();
 }
 
 void AWeapon::Dropped()

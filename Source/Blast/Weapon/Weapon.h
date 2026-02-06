@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Casting.h"
+#include "Blast/PlayerController/BlasterPlayerController.h"
+#include "Blast/Character/BlasterCharacter.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -28,6 +30,12 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void OnRep_Owner() override;
+
+	UFUNCTION()
+	virtual void OnRep_AmmoAmount();
+
+	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;};
 
 	UFUNCTION()
 	virtual void OnSphereOverlap(
@@ -46,6 +54,13 @@ protected:
 		UPrimitiveComponent* OtherComponent,
 		int OtherBodyIndex
 	);
+
+	void SpendAmmo();
+
+protected:
+	ABlasterPlayerController* BlasterPlayerController;
+	ABlasterCharacter* BlasterPlayerCharacter;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -55,7 +70,7 @@ public:
 	void SetWeaponState(EWeaponState State);
 
 	UFUNCTION()
-	void OnRep_WeaponState() const;
+	void OnRep_WeaponState();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -63,6 +78,8 @@ public:
 	virtual void Dropped();
 
 	USkeletalMeshComponent* Get_WeaponMesh() const;
+
+	void UpdateAmmoAmountHUD();
 	
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
@@ -116,4 +133,11 @@ public:
 	float FireDelay = 0.15f;
 	UPROPERTY(EditAnywhere,Category="Weapon Attributes")
 	bool bAutomaticFire = true;
+
+private:
+	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_AmmoAmount,Category="Weapon Attributes")
+	int32 AmmoAmount;
+
+	UPROPERTY(EditAnywhere,Replicated,Category="Weapon Attributes")
+	int32 MagCapacity;
 };
