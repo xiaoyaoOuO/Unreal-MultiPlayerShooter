@@ -57,8 +57,11 @@ protected:
 	void SpendAmmo();
 
 protected:
+	UPROPERTY()
 	ABlasterPlayerController* BlasterPlayerController;
+	UPROPERTY()
 	ABlasterCharacter* BlasterPlayerCharacter;
+	EWeaponType WeaponType;
 	
 public:	
 	// Called every frame
@@ -143,6 +146,4 @@ private:
 
 	UPROPERTY(EditAnywhere,Replicated,Category="Weapon Attributes")
 	int32 MagCapacity;
-
-	EWeaponType WeaponType;
 };

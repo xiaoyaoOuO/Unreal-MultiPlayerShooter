@@ -20,5 +20,5 @@ public:
 
 public:
 	virtual void Fire(const FVector& HitTarget) override;
-	
+	virtual void BeginPlay() override;
 };

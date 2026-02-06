@@ -72,11 +72,11 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
-	if (LastWeapon)
+	if (IsValid(LastWeapon))
 	{
 		LastWeapon->ShowPickUpWidget(false);
 	}
-	if (OverlappingWeapon)
+	if (IsValid(OverlappingWeapon))
 	{
 		OverlappingWeapon->ShowPickUpWidget(true);
 	}
@@ -148,6 +148,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Aiming",IE_Released,this,&ABlasterCharacter::AImButtonReleased);
 	PlayerInputComponent->BindAction("Fire",IE_Pressed,this,&ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire",IE_Released,this,&ABlasterCharacter::FireButtonReleased);
+	PlayerInputComponent->BindAction("Reload",IE_Pressed,this,&ABlasterCharacter::ReloadButtonPressed);
 
 	PlayerInputComponent->BindAxis("Look Up / Down",this,&ABlasterCharacter::LookUp);
 	PlayerInputComponent->BindAxis("Move Forward / Backward",this,&ABlasterCharacter::MoveForward);
@@ -307,6 +308,11 @@ void ABlasterCharacter::Calculate_AO_Pitch()
 	}
 }
 
+void ABlasterCharacter::MulticastReload_Implementation()
+{
+	PlayReloadMontage();
+}
+
 float ABlasterCharacter::Calculate_Speed()
 {
 	FVector Velocity = GetVelocity();
@@ -393,6 +399,11 @@ void ABlasterCharacter::FireButtonReleased()
 	}
 }
 
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	ServerReload();
+}
+
 void ABlasterCharacter::HideCharacterWhenCameraClose()
 {
 	if (!IsLocallyControlled() || FollowCamera == nullptr) return;
@@ -455,6 +466,27 @@ void ABlasterCharacter::PlayElimMontage()
 	}
 }
 
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr || !IsValid(ReloadMontage)) return;
+
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SlotName = FName();
+		EWeaponType EquippedWeaponType = CombatComponent->EquippedWeapon->Get_WeaponType();
+		switch (EquippedWeaponType)
+		{
+		case EWT_AssaultRifle:
+			SlotName = FName("Rifle");
+			break;
+		default:
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SlotName);
+	}
+}
+
 void ABlasterCharacter::RespawnTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
@@ -478,6 +510,22 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
+void ABlasterCharacter::Reload()
+{
+	//检查弹药
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+	PlayReloadMontage();
+}
+
+void ABlasterCharacter::ServerReload_Implementation()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+	if (CombatComponent->CarriedAmmoAmount > 0)
+	{
+		Reload();
+		MulticastReload();
+	}
+}
 void ABlasterCharacter::Elim()
 {
 	bShouldElim = true;

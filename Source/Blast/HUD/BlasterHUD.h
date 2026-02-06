@@ -38,6 +38,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 
+	UPROPERTY()
 	UCharacterOverlay* CharacterOverlay;
 	float CrosshairSpreadMax = 16.f;
 	

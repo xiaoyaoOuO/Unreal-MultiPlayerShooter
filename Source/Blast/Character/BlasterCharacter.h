@@ -21,8 +21,12 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+
+	//蒙太奇动画
 	void PlayFireMontage();
 	void PlayHitReactMontage();
+	void PlayElimMontage();
+	void PlayReloadMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere , Category= Camera)
@@ -78,7 +82,8 @@ private:
 	
 	UPROPERTY(EditAnywhere,Category= "Elim")
 	USoundCue* BotSoundCue;
-	
+
+	UPROPERTY()
 	UParticleSystemComponent* ElimBot;
 
 	UPROPERTY(EditAnywhere)
@@ -106,6 +111,9 @@ private:
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
 
+	/*
+	 * 人物的动画蒙太奇
+	 */
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* FireWeaponMontage;
 
@@ -114,6 +122,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditAnywhere,Category=Combat)
+	UAnimMontage* ReloadMontage;
 
 
 	/*
@@ -147,20 +158,31 @@ protected:
 	void MoveRight(float Value);
 	void LookUp(float Value);
 	void Turn(float Value);
+	/*
+	 * 操作绑定函数
+	 */
 	void EquipButtonPressed();
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AImButtonReleased();
+	void FireButtonPressed();
+	void FireButtonReleased();
+	void ReloadButtonPressed();
+	
 	void TurnInPlace(float DeltaTime);
 	void Calculate_AO_Pitch();
 	void AimOffset(float DeltaTime);
-	void FireButtonPressed();
-	void FireButtonReleased();
 	void HideCharacterWhenCameraClose();
 	void SimProxiesTurn();
-	void PlayElimMontage();
 	void RespawnTimerFinished();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
+	void Reload();
+
+	UFUNCTION(Server,Reliable)
+	void ServerReload();
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastReload();
 
 	float Calculate_Speed();
 

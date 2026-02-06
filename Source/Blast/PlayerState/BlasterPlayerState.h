@@ -24,7 +24,9 @@ public:
 	UFUNCTION()
 	virtual void OnRep_DefeatAmount();
 private:
+	UPROPERTY()
 	ABlasterCharacter* Character;
+	UPROPERTY()
 	ABlasterPlayerController* PlayerController;
 
 	/*

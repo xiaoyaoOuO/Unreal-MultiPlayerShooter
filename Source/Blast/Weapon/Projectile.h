@@ -46,5 +46,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* DestroyedSound;
 
+	UPROPERTY()
 	UParticleSystemComponent* TracerParticleComponent;
 };

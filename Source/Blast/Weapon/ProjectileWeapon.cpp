@@ -38,3 +38,12 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 		}
 	}
 }
+
+void AProjectileWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+	if (HasAuthority())
+	{
+		WeaponType = EWeaponType::EWT_AssaultRifle;
+	}
+}
