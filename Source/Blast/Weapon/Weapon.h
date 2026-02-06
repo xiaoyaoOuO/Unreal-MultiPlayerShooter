@@ -7,6 +7,7 @@
 #include "Casting.h"
 #include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Blast/Character/BlasterCharacter.h"
+#include "WeaponType.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -34,8 +35,6 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_AmmoAmount();
-
-	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;};
 
 	UFUNCTION()
 	virtual void OnSphereOverlap(
@@ -80,6 +79,8 @@ public:
 	USkeletalMeshComponent* Get_WeaponMesh() const;
 
 	void UpdateAmmoAmountHUD();
+
+	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;};
 	
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
@@ -140,4 +141,6 @@ private:
 
 	UPROPERTY(EditAnywhere,Replicated,Category="Weapon Attributes")
 	int32 MagCapacity;
+
+	EWeaponType WeaponType;
 };

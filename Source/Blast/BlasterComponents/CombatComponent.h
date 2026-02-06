@@ -7,6 +7,7 @@
 #include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Components/ActorComponent.h"
 #include "Blast/HUD/BlasterHUD.h"
+#include "Blast/Weapon/WeaponType.h"
 #include "CombatComponent.generated.h"
 
 
@@ -44,6 +45,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+
+	UFUNCTION()
+	void OnRep_CarriedAmmoAmount();
 
 public:
 	class ABlasterCharacter* Character;
@@ -89,4 +93,11 @@ private:
 	FTimerHandle FireDelayTimer;
 	void StartFireDelay();
 	void FireTimerFinish();
+	bool CanFire() const;
+
+	//对于当前武器，玩家所携带的子弹数量
+	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
+	int32 CarriedAmmoAmount;
+
+	TMap<EWeaponType,int32> CarriedAmmoMap;
 };

@@ -198,6 +198,22 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::OnRep_CarriedAmmoAmount()
+{
+	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : Character;
+	if (Character)
+	{
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			FHUDData HUDData;
+			HUDData.CarriedAmmo = CarriedAmmoAmount;
+			EHUDType HUDType = EHUDType::EHT_CarriedAmmo;
+			Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+		}
+	}
+}
+
 void UCombatComponent::StartFireDelay()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
@@ -222,6 +238,12 @@ void UCombatComponent::FireTimerFinish()
 	}
 }
 
+bool UCombatComponent::CanFire() const
+{
+	if (EquippedWeapon == nullptr) return false;
+	return EquippedWeapon->Get_AmmoAmount() > 0 && bCanFire;
+}
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -242,6 +264,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 
 	DOREPLIFETIME(UCombatComponent,EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent,bAiming);
+	DOREPLIFETIME_CONDITION(UCombatComponent,CarriedAmmoAmount,COND_OwnerOnly);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -277,7 +300,7 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 
 void UCombatComponent::Fire()
 {
-	if (bCanFire)
+	if (CanFire())
 	{
 		ShootingFactor = 0.2f;
 		ServerFire(HitTargetPoint);

@@ -80,3 +80,24 @@ void ABlasterPlayerController::SetBlasterPlayerAmmoAmount(int32 AmmoAmount)
 		}
 	}
 }
+
+void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, const FHUDData& Data)
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD == nullptr) return;
+	UCharacterOverlay* CharacterOverlay = BlasterHUD->GetCharacterOverlay();
+	if (CharacterOverlay == nullptr) return;
+	
+	switch (HUDType)
+	{
+	case (EHT_CarriedAmmo):
+		if (CharacterOverlay->CarriedAmmoAmountText)
+		{
+			FString CarriedAmmoAmountString = FString::Printf(TEXT("%d"), Data.CarriedAmmo);
+			CharacterOverlay->CarriedAmmoAmountText->SetText(FText::FromString(CarriedAmmoAmountString));
+		}
+		break;
+	default:
+		break;
+	}
+}

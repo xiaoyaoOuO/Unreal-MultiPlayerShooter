@@ -109,7 +109,7 @@ void AWeapon::UpdateAmmoAmountHUD()
 
 void AWeapon::SpendAmmo()
 {
-	AmmoAmount--;
+	AmmoAmount = FMath::Clamp(AmmoAmount - 1, 0, MagCapacity);
 
 	UpdateAmmoAmountHUD();
 }

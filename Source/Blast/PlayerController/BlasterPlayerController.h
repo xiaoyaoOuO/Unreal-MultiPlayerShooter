@@ -7,6 +7,20 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+UENUM()
+enum EHUDType
+{
+	EHT_CarriedAmmo,
+	EHT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
+USTRUCT()
+struct FHUDData
+{
+	GENERATED_BODY()
+	int32 CarriedAmmo;
+};
+
 /**
  * 
  */
@@ -25,4 +39,5 @@ public:
 	void SetBlasterPlayerScore(float Score);
 	void SetBlasterPlayerDefeat(int32 Defeat);
 	void SetBlasterPlayerAmmoAmount(int32 AmmoAmount);
+	void SetBlasterPlayerHUDData(const EHUDType& HUDType,const FHUDData& Data);
 };
