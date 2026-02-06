@@ -49,6 +49,8 @@ protected:
 	UFUNCTION()
 	void OnRep_CarriedAmmoAmount();
 
+	void InitializeCarriedAmmo();
+
 public:
 	class ABlasterCharacter* Character;
 	class ABlasterPlayerController* Controller;
@@ -99,5 +101,8 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
 	int32 CarriedAmmoAmount;
 
+	//初始携带弹药
+	UPROPERTY(EditAnywhere,Category="Combat")
+	int32 InitialCarried_AR_Ammo;
 	TMap<EWeaponType,int32> CarriedAmmoMap;
 };

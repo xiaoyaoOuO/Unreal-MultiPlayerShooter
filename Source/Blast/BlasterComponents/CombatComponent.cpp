@@ -180,6 +180,10 @@ void UCombatComponent::BeginPlay()
 		DefaultFOV = Character->GetFollowCamera()->FieldOfView;
 		CurrentFOV = DefaultFOV;
 	}
+	if (GetOwner()->HasAuthority())
+	{
+		InitializeCarriedAmmo();
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -212,6 +216,11 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 			Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
 		}
 	}
+}
+
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWT_AssaultRifle,InitialCarried_AR_Ammo);
 }
 
 void UCombatComponent::StartFireDelay()
@@ -285,6 +294,20 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 	Weapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 	Character->bUseControllerRotationYaw = true;
+	//更新携带弹药量
+	EWeaponType EquippedWeaponType = EquippedWeapon->Get_WeaponType();
+	if (CarriedAmmoMap.Contains(EquippedWeaponType))
+	{
+		CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
+	}
+	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		FHUDData HUDData;
+		HUDData.CarriedAmmo = CarriedAmmoAmount;
+		EHUDType HUDType = EHT_CarriedAmmo;
+		Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+	}
 	EquippedWeapon->UpdateAmmoAmountHUD();
 }
 

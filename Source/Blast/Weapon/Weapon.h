@@ -80,7 +80,9 @@ public:
 
 	void UpdateAmmoAmountHUD();
 
-	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;};
+	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;}
+	FORCEINLINE EWeaponType Get_WeaponType() const {return WeaponType;}
+	FORCEINLINE int32 Get_MagCapacity() const {return MagCapacity;}
 	
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
