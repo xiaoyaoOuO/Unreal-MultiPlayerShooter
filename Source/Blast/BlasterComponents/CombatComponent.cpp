@@ -40,6 +40,7 @@ void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
 void UCombatComponent::ServerReload_Implementation()
 {
 	if (Character == nullptr) return;
+	CombatState = ECombatState::ECS_Reloading; //通过复制State令客户端播放装弹动画
 	HandleReload();
 }
 
@@ -179,7 +180,6 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 void UCombatComponent::HandleReload()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
-	CombatState = ECombatState::ECS_Reloading; //通过复制State令客户端播放装弹动画
 	Character->PlayReloadMontage();
 }
 
@@ -189,6 +189,10 @@ void UCombatComponent::OnReloadComplete()
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
+	}
+	if (bFireButtonPressed)
+	{
+		Fire();
 	}
 }
 
@@ -272,7 +276,7 @@ void UCombatComponent::FireTimerFinish()
 bool UCombatComponent::CanFire() const
 {
 	if (EquippedWeapon == nullptr) return false;
-	return EquippedWeapon->Get_AmmoAmount() > 0 && bCanFire;
+	return EquippedWeapon->Get_AmmoAmount() > 0 && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -385,11 +389,13 @@ void UCombatComponent::OnRep_CombatState()
 	switch (CombatState)
 	{
 	case ECombatState::ECS_Reloading:
-		if (Character)
-		{
-			Character->PlayReloadMontage();
-		}
+		HandleReload();
 		break;
+	case ECombatState::ECS_Unoccupied:
+		if (bFireButtonPressed)
+		{
+			Fire();
+		}
 	default:
 		break;
 	}
