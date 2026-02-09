@@ -37,6 +37,12 @@ void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
 	MulticastFire(HitTarget);
 }
 
+void UCombatComponent::ServerReload_Implementation()
+{
+	if (Character == nullptr) return;
+	HandleReload();
+}
+
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
 	FVector2D ViewPortSize = FVector2D::ZeroVector;
@@ -167,6 +173,22 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	if (Character && Character->GetFollowCamera())
 	{
 		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+	}
+}
+
+void UCombatComponent::HandleReload()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+	CombatState = ECombatState::ECS_Reloading; //通过复制State令客户端播放装弹动画
+	Character->PlayReloadMontage();
+}
+
+void UCombatComponent::OnReloadComplete()
+{
+	if (Character == nullptr) return;
+	if (Character->HasAuthority())
+	{
+		CombatState = ECombatState::ECS_Unoccupied;
 	}
 }
 
@@ -340,6 +362,14 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	}
 }
 
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmoAmount > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+
 
 void UCombatComponent::Server_SetAiming_Implementation(bool bIsAiming)
 {
@@ -350,3 +380,17 @@ void UCombatComponent::Server_SetAiming_Implementation(bool bIsAiming)
 	}
 }
 
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+	case ECombatState::ECS_Reloading:
+		if (Character)
+		{
+			Character->PlayReloadMontage();
+		}
+		break;
+	default:
+		break;
+	}
+}

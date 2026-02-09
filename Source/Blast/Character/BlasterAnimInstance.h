@@ -20,7 +20,6 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 private:
-	friend  class ABlasterCharacter;
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	ABlasterCharacter* BlasterCharacter;
 
@@ -62,6 +61,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	bool bElimmed;
+
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bUseFABRIK;
 
 	//校准瞄准旋转
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))

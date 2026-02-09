@@ -308,11 +308,6 @@ void ABlasterCharacter::Calculate_AO_Pitch()
 	}
 }
 
-void ABlasterCharacter::MulticastReload_Implementation()
-{
-	PlayReloadMontage();
-}
-
 float ABlasterCharacter::Calculate_Speed()
 {
 	FVector Velocity = GetVelocity();
@@ -331,7 +326,7 @@ void ABlasterCharacter::OnRep_CurrentHealth()
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatedBy, AActor* DamageCauser)
+                                      AController* InstigatedBy, AActor* DamageCauser)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage,0.f,MaxHealth);
 	UpdateHealthHUD();
@@ -401,7 +396,8 @@ void ABlasterCharacter::FireButtonReleased()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
-	ServerReload();
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+	CombatComponent->Reload();
 }
 
 void ABlasterCharacter::HideCharacterWhenCameraClose()
@@ -510,22 +506,6 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
-void ABlasterCharacter::Reload()
-{
-	//检查弹药
-	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
-	PlayReloadMontage();
-}
-
-void ABlasterCharacter::ServerReload_Implementation()
-{
-	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
-	if (CombatComponent->CarriedAmmoAmount > 0)
-	{
-		Reload();
-		MulticastReload();
-	}
-}
 void ABlasterCharacter::Elim()
 {
 	bShouldElim = true;
@@ -614,6 +594,12 @@ FVector ABlasterCharacter::Get_HitResult()
 	return CombatComponent->HitTargetPoint;
 }
 
+ECombatState ABlasterCharacter::Get_CombatState() const
+{
+	if (CombatComponent == nullptr) return ECombatState::ECS_DefaultMax;
+	return CombatComponent->Get_CombatState();
+}
+
 
 void ABlasterCharacter::Tick(float DeltaTime)
 {
@@ -634,7 +620,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	HideCharacterWhenCameraClose();
 	PollInit();
 }
-
 
 
 

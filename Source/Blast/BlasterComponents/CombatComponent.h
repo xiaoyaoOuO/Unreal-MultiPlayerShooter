@@ -25,6 +25,7 @@ public:
 	void SetAiming(bool bIsAiming);
 	void Fire();
 	void FireButtonPressed(bool bPressed);
+	void Reload();
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetAiming(bool bIsAiming);
@@ -35,11 +36,21 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerFire(FVector_NetQuantize HitTarget);
 
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 	void UpdateHUD(float DeltaTime);
 
 	void InterpFOV(float DeltaTime);
+
+	void HandleReload();
+
+	UFUNCTION(BlueprintCallable)
+	void OnReloadComplete();
+
+	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:
 	virtual void BeginPlay() override;
 
@@ -48,6 +59,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CarriedAmmoAmount();
+	
+	UFUNCTION()
+	void OnRep_CombatState();
 
 	void InitializeCarriedAmmo();
 
@@ -105,4 +119,7 @@ private:
 	UPROPERTY(EditAnywhere,Category="Combat")
 	int32 InitialCarried_AR_Ammo;
 	TMap<EWeaponType,int32> CarriedAmmoMap;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
+	ECombatState CombatState;
 };

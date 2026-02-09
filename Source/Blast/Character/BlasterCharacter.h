@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Blast/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
+#include "Blast/TurningInPlace/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
 
@@ -41,7 +42,7 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere)
@@ -176,13 +177,8 @@ protected:
 	void SimProxiesTurn();
 	void RespawnTimerFinished();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
-	void Reload();
-
-	UFUNCTION(Server,Reliable)
-	void ServerReload();
-
-	UFUNCTION(NetMulticast,Reliable)
-	void MulticastReload();
+	void HandleReload();
+	
 
 	float Calculate_Speed();
 
@@ -205,6 +201,7 @@ public:
 	void Elim();
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
+	ECombatState Get_CombatState() const;
 	
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}
