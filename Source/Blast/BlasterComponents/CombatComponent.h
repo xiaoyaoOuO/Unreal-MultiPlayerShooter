@@ -64,6 +64,10 @@ protected:
 	void OnRep_CombatState();
 
 	void InitializeCarriedAmmo();
+	
+	int32 AmountToReload(const EWeaponType& WeaponType) const;
+
+	void UpdateWeaponAmmo();
 
 public:
 	class ABlasterCharacter* Character;

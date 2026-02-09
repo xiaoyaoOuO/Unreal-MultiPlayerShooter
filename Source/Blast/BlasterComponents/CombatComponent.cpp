@@ -189,6 +189,7 @@ void UCombatComponent::OnReloadComplete()
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
+		UpdateWeaponAmmo();
 	}
 	if (bFireButtonPressed)
 	{
@@ -247,6 +248,39 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWT_AssaultRifle,InitialCarried_AR_Ammo);
+}
+
+int32 UCombatComponent::AmountToReload(const EWeaponType& WeaponType) const
+{
+	if (CarriedAmmoMap.Contains(WeaponType))
+	{
+		int32 CarriedAmmo = CarriedAmmoMap[WeaponType];
+		int32 MagEmptySpace = EquippedWeapon->Get_MagCapacity() - EquippedWeapon->Get_AmmoAmount();
+		return FMath::Min(CarriedAmmo,MagEmptySpace);
+	}
+	return 0;	
+}
+
+void UCombatComponent::UpdateWeaponAmmo()
+{
+	if (EquippedWeapon == nullptr) return;
+	EWeaponType EquippedWeaponType = EquippedWeapon->Get_WeaponType();
+	if (CarriedAmmoMap.Contains(EquippedWeaponType))
+	{
+		int32 AmmoToAdd = AmountToReload(EquippedWeaponType);
+		EquippedWeapon->AddAmmo(AmmoToAdd);
+		//更新携带弹药量
+		CarriedAmmoMap[EquippedWeaponType] -= AmmoToAdd;
+		this->CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			FHUDData HUDData;
+			HUDData.CarriedAmmo = CarriedAmmoAmount;
+			EHUDType HUDType = EHT_CarriedAmmo;
+			Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+		}
+	}
 }
 
 void UCombatComponent::StartFireDelay()
