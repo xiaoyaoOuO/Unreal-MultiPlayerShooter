@@ -65,6 +65,12 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	bool bUseFABRIK;
 
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bUseAimOffsets;
+
+	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
+	bool bUseRightHandTransform;
+
 	//校准瞄准旋转
 	UPROPERTY(BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"))
 	FRotator TargetRotation;

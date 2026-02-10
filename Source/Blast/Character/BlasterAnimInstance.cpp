@@ -31,6 +31,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	TurningInPlace = BlasterCharacter->Get_TurningInPlace();
 	bElimmed = BlasterCharacter->ShouldElim();
 	bUseFABRIK = BlasterCharacter->Get_CombatState() != ECombatState::ECS_Reloading;
+	bUseAimOffsets = bUseFABRIK;
+	bUseRightHandTransform = bUseFABRIK;
 
 	FRotator AimRotation = BlasterCharacter->GetBaseAimRotation();
 	FRotator MoveRotation = UKismetMathLibrary::MakeRotFromX(BlasterCharacter->GetVelocity());

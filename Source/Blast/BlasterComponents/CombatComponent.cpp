@@ -226,6 +226,15 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 		Character->bUseControllerRotationYaw = true;
 		// EquippedWeapon->UpdateAmmoAmountHUD();
+		//拾取音效
+		if (EquippedWeapon->EquippedSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				GetWorld(),
+				EquippedWeapon->EquippedSound,
+				Character->GetActorLocation()
+			);
+		}
 	}
 }
 
@@ -305,6 +314,10 @@ void UCombatComponent::FireTimerFinish()
 	{
 		Fire();
 	}
+	if (EquippedWeapon->Get_AmmoAmount() <= 0 && CarriedAmmoAmount > 0)
+	{
+		Reload();
+	}
 }
 
 bool UCombatComponent::CanFire() const
@@ -367,6 +380,18 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 		HUDData.CarriedAmmo = CarriedAmmoAmount;
 		EHUDType HUDType = EHT_CarriedAmmo;
 		Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+	}
+	if (EquippedWeapon->EquippedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			EquippedWeapon->EquippedSound,
+			Character->GetActorLocation()
+		);
+	}
+	if (EquippedWeapon->Get_AmmoAmount()<=0 && CarriedAmmoAmount > 0)
+	{
+		Reload();
 	}
 	EquippedWeapon->UpdateAmmoAmountHUD();
 }

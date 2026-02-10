@@ -90,7 +90,7 @@ public:
 	
 public:
 	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
-	class USkeletalMeshComponent* WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere,Category = "Weapon Properties")
 	class USphereComponent* AreaSphere;
@@ -99,13 +99,16 @@ public:
 	EWeaponState WeaponState;
 
 	UPROPERTY(VisibleAnywhere,Category = "Weapon Properties")
-	class UWidgetComponent* PickUpWidget;
+	UWidgetComponent* PickUpWidget;
 	
 	UPROPERTY(EditAnywhere,Category = "Weapon Properties")
-	class UAnimationAsset* FireAnimationAsset;
+	UAnimationAsset* FireAnimationAsset;
 	
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class ACasting> BulletShell;
+	TSubclassOf<ACasting> BulletShell;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* EquippedSound;
 
 	/*
 	 武器准心
