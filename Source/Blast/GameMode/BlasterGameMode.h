@@ -14,8 +14,20 @@ class BLAST_API ABlasterGameMode : public AGameMode
 {
 	GENERATED_BODY()
 public:
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
+	virtual void OnMatchStateSet() override;
+	
 	virtual void CharacterElim(class ABlasterCharacter* ElimmedCharacter, class ABlasterPlayerController* VictimController, class ABlasterPlayerController* AttackerController);
 	virtual void RespawnCharacter(ACharacter* ElimmedCharacter, AController* VictimController);
+
+	ABlasterGameMode();
 private:
 	float ElimScore = 1.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float WarmUpTime = 10.f;
+	
+	float CountDownTime = 0.f;
+	float LevelStartTime = 0.f;
 };

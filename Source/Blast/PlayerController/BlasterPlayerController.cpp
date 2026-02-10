@@ -5,6 +5,20 @@
 
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
+#include "GameFramework/GameMode.h"
+#include "Net/UnrealNetwork.h"
+
+void ABlasterPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+		if (BlasterHUD)
+		{
+			BlasterHUD->AddCharacterOverlay();
+		}
+	}
+}
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -174,4 +188,36 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 	default:
 		break;
 	}
+}
+
+void ABlasterPlayerController::OnMatchStateSet(FName State)
+{
+	MatchState = State;
+
+	if (MatchState == MatchState::InProgress)
+	{
+		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+		if (BlasterHUD)
+		{
+			BlasterHUD->AddCharacterOverlay();
+			InitHUD();
+		}
+	}
+}
+
+void ABlasterPlayerController::InitHUD()
+{
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetCharacter());
+	if (BlasterCharacter)
+	{
+		BlasterCharacter->UpdateHealthHUD();
+		BlasterCharacter->PollInit();
+	}
+}
+
+void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABlasterPlayerController, MatchState);
 }

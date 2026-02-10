@@ -34,11 +34,23 @@ class BLAST_API ABlasterPlayerController : public APlayerController
 private:
 	ABlasterHUD* BlasterHUD;
 
+	/*
+	 * 计时
+	 */
 	float MatchTime = 120.f;
 	uint32 CountDownSeconds;
 	float SyncTimeFrequency = 5.f;
 	float SyncTimeTimer;  //用于计时，到达frequency就进行一次同步
 	double ServerClientDelta = 0.f;
+
+	/*
+	 * GameModeState
+	 */
+	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
+	FName MatchState;
+
+	UFUNCTION()
+	void OnRep_MatchState();
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -46,6 +58,7 @@ protected:
 	void SyncServerTime(float DeltaSeconds);
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void ReceivedPlayer() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server,Reliable)
 	void Server_RequestServerTime(float TimeOfClientRequest);
@@ -60,4 +73,6 @@ public:
 	void SetBlasterPlayerDefeat(int32 Defeat);
 	void SetBlasterPlayerAmmoAmount(int32 AmmoAmount);
 	void SetBlasterPlayerHUDData(const EHUDType& HUDType,const FHUDData& Data);
+	void OnMatchStateSet(FName State);
+	void InitHUD();
 };

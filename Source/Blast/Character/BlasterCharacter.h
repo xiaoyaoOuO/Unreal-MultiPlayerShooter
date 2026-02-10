@@ -56,7 +56,6 @@ private:
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
-	void UpdateHealthHUD();
 
 	FRotator StartingAimRotation;
 	
@@ -176,8 +175,6 @@ protected:
 	void HideCharacterWhenCameraClose();
 	void SimProxiesTurn();
 	void RespawnTimerFinished();
-	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
-	void HandleReload();
 	
 
 	float Calculate_Speed();
@@ -199,6 +196,8 @@ public:
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	void Elim();
+	void UpdateHealthHUD();
+	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	ECombatState Get_CombatState() const;
