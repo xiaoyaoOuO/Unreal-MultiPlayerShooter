@@ -248,8 +248,7 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 		{
 			FHUDData HUDData;
 			HUDData.CarriedAmmo = CarriedAmmoAmount;
-			EHUDType HUDType = EHUDType::EHT_CarriedAmmo;
-			Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
 		}
 	}
 }
@@ -286,8 +285,7 @@ void UCombatComponent::UpdateWeaponAmmo()
 		{
 			FHUDData HUDData;
 			HUDData.CarriedAmmo = CarriedAmmoAmount;
-			EHUDType HUDType = EHT_CarriedAmmo;
-			Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
 		}
 	}
 }
@@ -378,8 +376,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 	{
 		FHUDData HUDData;
 		HUDData.CarriedAmmo = CarriedAmmoAmount;
-		EHUDType HUDType = EHT_CarriedAmmo;
-		Controller->SetBlasterPlayerHUDData(HUDType, HUDData);
+		Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
 	}
 	if (EquippedWeapon->EquippedSound)
 	{

@@ -11,6 +11,7 @@ UENUM()
 enum EHUDType
 {
 	EHT_CarriedAmmo,
+	EHT_CountDownTimer,
 	EHT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
@@ -19,6 +20,7 @@ struct FHUDData
 {
 	GENERATED_BODY()
 	int32 CarriedAmmo;
+	float CountDownTime;
 };
 
 /**
@@ -31,9 +33,27 @@ class BLAST_API ABlasterPlayerController : public APlayerController
 
 private:
 	ABlasterHUD* BlasterHUD;
+
+	float MatchTime = 120.f;
+	uint32 CountDownSeconds;
+	float SyncTimeFrequency = 5.f;
+	float SyncTimeTimer;  //用于计时，到达frequency就进行一次同步
+	double ServerClientDelta = 0.f;
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	void UpdateTimeHUD();
+	void SyncServerTime(float DeltaSeconds);
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void ReceivedPlayer() override;
+
+	UFUNCTION(Server,Reliable)
+	void Server_RequestServerTime(float TimeOfClientRequest);
+
+	UFUNCTION(Client,Reliable)
+	void Client_ReportServerTime(float TimeOfClientRequest,float TimeServerReceivedClientRequest);
+
+	float GetServerTime();
 public:
 	void SetBlasterPlayerHealth(float Health,float MaxHealth);
 	void SetBlasterPlayerScore(float Score);
