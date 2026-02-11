@@ -9,6 +9,30 @@
 #include "GameFramework/GameMode.h"
 #include "Net/UnrealNetwork.h"
 
+void ABlasterPlayerController::HandleMatchStarted()
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD)
+	{
+		BlasterHUD->CloseAnnouncement();
+		BlasterHUD->AddCharacterOverlay();
+		InitHUD();
+	}
+}
+
+void ABlasterPlayerController::HandleCoolDown()
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD)
+	{
+		if (UCharacterOverlay* CharacterOverlay = BlasterHUD->GetCharacterOverlay())
+		{
+			CharacterOverlay->RemoveFromParent();
+		}
+		BlasterHUD->OpenAnnouncement();
+	}
+}
+
 void ABlasterPlayerController::OnRep_MatchState()
 {
 	if (MatchState == MatchState::WaitingToStart)
@@ -21,13 +45,10 @@ void ABlasterPlayerController::OnRep_MatchState()
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
-		if (BlasterHUD)
-		{
-			BlasterHUD->CloseAnnouncement();
-			BlasterHUD->AddCharacterOverlay();
-			InitHUD();
-		}
+		HandleMatchStarted();
+	}else if (MatchState == MatchState::CoolDown)
+	{
+		HandleCoolDown();
 	}
 }
 
@@ -53,30 +74,26 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 
 void ABlasterPlayerController::UpdateTimeHUD()
 {
-	double TimeLeft;
-	uint32 MatchTimeLeft;
-	if (MatchState == MatchState::WaitingToStart)
+	double TimeLeft = 0.f;
+	if (MatchState == MatchState::WaitingToStart) TimeLeft = WarmUpTime - GetServerTime() + LevelStartTime;
+	else if (MatchState == MatchState::InProgress) TimeLeft = MatchTime + WarmUpTime - GetServerTime() + LevelStartTime;
+	else if (MatchState == MatchState::CoolDown) TimeLeft = CoolDownTime + MatchTime + WarmUpTime - GetServerTime() + LevelStartTime;
+
+	uint32 MatchTimeLeft = FMath::CeilToInt(TimeLeft);
+
+	if (MatchTimeLeft != CountDownSeconds)
 	{
-		TimeLeft = WarmUpTime - GetServerTime() + LevelStartTime;
-		MatchTimeLeft = FMath::CeilToInt(TimeLeft);
-		if (MatchTimeLeft != CountDownSeconds)
+		FHUDData HUDData;
+		HUDData.CountDownTime = TimeLeft;
+		if (MatchState == MatchState::WaitingToStart)
 		{
-			CountDownSeconds = MatchTimeLeft;
-			FHUDData HUDData;
-			HUDData.CountDownTime = TimeLeft;
 			SetAnnouncementHUDData(EHT_WarmUpTimer,HUDData);
-		}
-	}
-	else if (MatchState == MatchState::InProgress)
-	{
-		TimeLeft = MatchTime + WarmUpTime - GetServerTime() + LevelStartTime;
-		MatchTimeLeft = FMath::CeilToInt(TimeLeft);
-		if (MatchTimeLeft != CountDownSeconds)
+		}else if (MatchState == MatchState::InProgress)
 		{
-			CountDownSeconds = MatchTimeLeft;
-			FHUDData HUDData;
-			HUDData.CountDownTime = TimeLeft;
 			SetBlasterPlayerHUDData(EHT_CountDownTimer,HUDData);
+		}else if (MatchState == MatchState::CoolDown)
+		{
+			SetAnnouncementHUDData(EHT_CoolDown,HUDData);
 		}
 	}
 }
@@ -137,8 +154,9 @@ void ABlasterPlayerController::Server_RequestServerMatchState_Implementation()
 		WarmUpTime = BlasterGameMode->GetWarmUpTime();
 		LevelStartTime = BlasterGameMode->GetLevelStartTime();
 		MatchState = BlasterGameMode->GetMatchState();
-		UE_LOG(LogTemp,Warning,TEXT("MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
-		Client_ReportServerMatchState(FServerMatchState(MatchTime,WarmUpTime,LevelStartTime,MatchState));
+		CoolDownTime = BlasterGameMode->GetCoolDownTime();
+
+		Client_ReportServerMatchState(FServerMatchState(MatchTime,WarmUpTime,LevelStartTime,MatchState,CoolDownTime));
 	}else
 	{
 		UE_LOG(LogTemp,Warning,TEXT("GameMode is not valid"));
@@ -150,6 +168,7 @@ void ABlasterPlayerController::Client_ReportServerMatchState_Implementation(cons
 	MatchTime = ServerMatchState.MatchTime;
 	WarmUpTime = ServerMatchState.WarmUpTime;
 	LevelStartTime = ServerMatchState.LevelStartTime;
+	CoolDownTime = ServerMatchState.CoolDownTime;
 	OnMatchStateSet(ServerMatchState.MatchState);
 	UE_LOG(LogTemp,Warning,TEXT("Client : MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
 }
@@ -240,6 +259,10 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
 
 			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+			if (Data.CountDownTime <= 0.f)
+			{
+				CountDownTimeString = FString("");
+			}
 			CharacterOverlay->CountDownText->SetText(FText::FromString(CountDownTimeString));
 		}
 	default:
@@ -269,8 +292,36 @@ void ABlasterPlayerController::SetAnnouncementHUDData(const EHUDType& HUDType, c
 			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
 
 			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+			if (Data.CountDownTime <= 0.f)
+			{
+				CountDownTimeString = FString("");
+			}
 			Announcement->WarmUpTimerText->SetText(FText::FromString(CountDownTimeString));
 		}
+		if (Announcement->TitleText)
+		{
+			Announcement->TitleText->SetText(FText::FromString(TEXT("热身阶段")));
+		}
+		break;
+	case EHT_CoolDown:
+		if (Announcement->WarmUpTimerText)
+		{
+			uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
+			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
+
+			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+			if (Data.CountDownTime <= 0.f)
+			{
+				CountDownTimeString = FString("");
+			}
+			Announcement->WarmUpTimerText->SetText(FText::FromString(CountDownTimeString));
+		}
+		if (Announcement->TitleText)
+		{
+			FText TitleString = FText::FromString(TEXT("比赛结束,倒计时结束重新开始"));
+			Announcement->TitleText->SetText(TitleString);
+		}
+		break;
 	default:
 		break;
 	}
@@ -290,13 +341,10 @@ void ABlasterPlayerController::OnMatchStateSet(FName State)
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
-		if (BlasterHUD)
-		{
-			BlasterHUD->CloseAnnouncement();
-			BlasterHUD->AddCharacterOverlay();
-			InitHUD();
-		}
+		HandleMatchStarted();
+	}else if (MatchState == MatchState::CoolDown)
+	{
+		HandleCoolDown();
 	}
 }
 

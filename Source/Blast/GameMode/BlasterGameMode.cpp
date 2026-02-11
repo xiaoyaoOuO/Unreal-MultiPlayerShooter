@@ -9,6 +9,11 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
+namespace MatchState
+{
+	const FName CoolDown = FName(TEXT("CoolDown"));
+}
+
 void ABlasterGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -19,6 +24,20 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 		if (CountDownTime <= 0.f)
 		{
 			StartMatch();
+		}
+	}else if (MatchState == MatchState::InProgress)
+	{
+		CountDownTime = MatchTime + WarmUpTime - GetWorld()->GetTimeSeconds() + LevelStartTime;
+		if (CountDownTime <= 0.f)
+		{
+			SetMatchState(MatchState::CoolDown);
+		}
+	}else if (MatchState == MatchState::CoolDown)
+	{
+		CountDownTime = CoolDownTime + MatchTime + WarmUpTime - GetWorld()->GetTimeSeconds() + LevelStartTime;
+		if (CountDownTime <= 0.f)
+		{
+			RestartGame();
 		}
 	}
 }

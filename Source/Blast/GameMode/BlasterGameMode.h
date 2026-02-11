@@ -6,6 +6,10 @@
 #include "GameFramework/GameMode.h"
 #include "BlasterGameMode.generated.h"
 
+namespace MatchState
+{
+	extern BLAST_API const FName CoolDown;
+}
 /**
  * 
  */
@@ -30,6 +34,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float MatchTime = 120.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CoolDownTime = 10.f;
 	
 	float CountDownTime = 0.f;
 	float LevelStartTime = 0.f;
@@ -39,4 +46,5 @@ public:
 	FORCEINLINE float GetWarmUpTime() const { return WarmUpTime; }
 	FORCEINLINE float GetMatchTime() const { return MatchTime; }
 	FORCEINLINE float GetLevelStartTime() const { return LevelStartTime; }
+	FORCEINLINE float GetCoolDownTime() const { return CoolDownTime; }
 };

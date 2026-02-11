@@ -11,9 +11,10 @@
 UENUM()
 enum EHUDType
 {
-	EHT_CarriedAmmo,
-	EHT_CountDownTimer,
-	EHT_WarmUpTimer,
+	EHT_CarriedAmmo,   //玩家携带的弹药数量
+	EHT_CountDownTimer, //比赛时的倒计时
+	EHT_WarmUpTimer,	//比赛开始前的热身倒计时
+	EHT_CoolDown,		//比赛结束后倒计时一段时间再重开比赛
 	EHT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
@@ -32,19 +33,28 @@ struct FServerMatchState
 
 	UPROPERTY()
 	float MatchTime;
+	
 	UPROPERTY()
 	float WarmUpTime;
+	
 	UPROPERTY()
 	float LevelStartTime;
+
+	UPROPERTY()
+	float CoolDownTime;
+	
 	UPROPERTY()
 	FName MatchState;
 
-	FServerMatchState(float MatchTime = 0.f, float WarmUpTime = 0.f, float LevelStartTime = 0.f,FName MatchState = MatchState::Aborted)
+	FServerMatchState() = default;
+
+	FServerMatchState(float MatchTime, float WarmUpTime, float LevelStartTime,FName MatchState, float CoolDownTime)
 	{
 		this->MatchTime = MatchTime;
 		this->WarmUpTime = WarmUpTime;
 		this->LevelStartTime = LevelStartTime;
 		this->MatchState = MatchState;
+		this->CoolDownTime = CoolDownTime;
 	}
 };
 
@@ -65,6 +75,7 @@ private:
 	float MatchTime;
 	float WarmUpTime;
 	float LevelStartTime;
+	float CoolDownTime;
 	uint32 CountDownSeconds;
 	float SyncTimeFrequency = 5.f;
 	float SyncTimeTimer;  //用于计时，到达frequency就进行一次同步
@@ -76,6 +87,8 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
 	FName MatchState;
 
+	void HandleMatchStarted();
+	void HandleCoolDown();
 	UFUNCTION()
 	void OnRep_MatchState();
 protected:

@@ -56,6 +56,7 @@ public:
 	void AddCharacterOverlay();
 	void AddAnnouncement();
 	void CloseAnnouncement();
+	void OpenAnnouncement();
 	
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;}
 	FORCEINLINE UCharacterOverlay* GetCharacterOverlay() const {return CharacterOverlay;}

@@ -135,6 +135,10 @@ void ABlasterCharacter::Destroyed()
 	{
 		ElimBot->DestroyComponent();
 	}
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
+	}
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

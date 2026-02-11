@@ -101,3 +101,11 @@ void ABlasterHUD::CloseAnnouncement()
 		Announcement->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
+
+void ABlasterHUD::OpenAnnouncement()
+{
+	if (Announcement)
+	{
+		Announcement->SetVisibility(ESlateVisibility::Visible);
+	}
+}
