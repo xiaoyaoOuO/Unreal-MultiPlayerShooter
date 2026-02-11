@@ -4,18 +4,29 @@
 #include "BlasterPlayerController.h"
 
 #include "Blast/Character/BlasterCharacter.h"
+#include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::OnRep_MatchState()
 {
-	if (MatchState == MatchState::InProgress)
+	if (MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
 		if (BlasterHUD)
 		{
+			BlasterHUD->AddAnnouncement();
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+		if (BlasterHUD)
+		{
+			BlasterHUD->CloseAnnouncement();
 			BlasterHUD->AddCharacterOverlay();
+			InitHUD();
 		}
 	}
 }
@@ -23,8 +34,11 @@ void ABlasterPlayerController::OnRep_MatchState()
 void ABlasterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+
+	Server_RequestServerMatchState();
+	Server_RequestServerTime(GetWorld()->GetTimeSeconds());
 }
 
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
@@ -39,14 +53,31 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 
 void ABlasterPlayerController::UpdateTimeHUD()
 {
-	double TimeLeft = MatchTime - GetServerTime();
-	uint32 MatchTimeLeft = FMath::CeilToInt(TimeLeft);
-	if (MatchTimeLeft != CountDownSeconds)
+	double TimeLeft;
+	uint32 MatchTimeLeft;
+	if (MatchState == MatchState::WaitingToStart)
 	{
-		CountDownSeconds = MatchTimeLeft;
-		FHUDData HUDData;
-		HUDData.CountDownTime = TimeLeft;
-		SetBlasterPlayerHUDData(EHT_CountDownTimer,HUDData);
+		TimeLeft = WarmUpTime - GetServerTime() + LevelStartTime;
+		MatchTimeLeft = FMath::CeilToInt(TimeLeft);
+		if (MatchTimeLeft != CountDownSeconds)
+		{
+			CountDownSeconds = MatchTimeLeft;
+			FHUDData HUDData;
+			HUDData.CountDownTime = TimeLeft;
+			SetAnnouncementHUDData(EHT_WarmUpTimer,HUDData);
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		TimeLeft = MatchTime + WarmUpTime - GetServerTime() + LevelStartTime;
+		MatchTimeLeft = FMath::CeilToInt(TimeLeft);
+		if (MatchTimeLeft != CountDownSeconds)
+		{
+			CountDownSeconds = MatchTimeLeft;
+			FHUDData HUDData;
+			HUDData.CountDownTime = TimeLeft;
+			SetBlasterPlayerHUDData(EHT_CountDownTimer,HUDData);
+		}
 	}
 }
 
@@ -95,6 +126,32 @@ void ABlasterPlayerController::Client_ReportServerTime_Implementation(float Time
 	double RPCDelay = CurrentTime - TimeOfClientRequest;
 	double CurrentServerTime = TimeServerReceivedClientRequest + RPCDelay * 0.5f;
 	ServerClientDelta = CurrentServerTime - CurrentTime;
+}
+
+void ABlasterPlayerController::Server_RequestServerMatchState_Implementation()
+{
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(GetWorld()->GetAuthGameMode());
+	if (IsValid(BlasterGameMode))
+	{
+		MatchTime = BlasterGameMode->GetMatchTime();
+		WarmUpTime = BlasterGameMode->GetWarmUpTime();
+		LevelStartTime = BlasterGameMode->GetLevelStartTime();
+		MatchState = BlasterGameMode->GetMatchState();
+		UE_LOG(LogTemp,Warning,TEXT("MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
+		Client_ReportServerMatchState(FServerMatchState(MatchTime,WarmUpTime,LevelStartTime,MatchState));
+	}else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("GameMode is not valid"));
+	}
+}
+
+void ABlasterPlayerController::Client_ReportServerMatchState_Implementation(const FServerMatchState& ServerMatchState)
+{
+	MatchTime = ServerMatchState.MatchTime;
+	WarmUpTime = ServerMatchState.WarmUpTime;
+	LevelStartTime = ServerMatchState.LevelStartTime;
+	OnMatchStateSet(ServerMatchState.MatchState);
+	UE_LOG(LogTemp,Warning,TEXT("Client : MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
 }
 
 float ABlasterPlayerController::GetServerTime()
@@ -190,15 +247,53 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 	}
 }
 
+void ABlasterPlayerController::SetAnnouncementHUDData(const EHUDType& HUDType, const FHUDData& Data)
+{
+	/*先检查BlasterHUD和Announcement是否有效*/
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD == nullptr) return;
+	UAnnouncement* Announcement = BlasterHUD->GetAnnouncement();
+	if (Announcement == nullptr)
+	{
+		UE_LOG(LogTemp,Error,TEXT("Announcement is nullptr"));
+		return;
+	}
+
+	/*根据HUDType设置不同的文本*/
+	switch (HUDType)
+	{
+	case EHT_WarmUpTimer:
+		if (Announcement->WarmUpTimerText)
+		{
+			uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
+			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
+
+			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+			Announcement->WarmUpTimerText->SetText(FText::FromString(CountDownTimeString));
+		}
+	default:
+		break;
+	}
+}
+
 void ABlasterPlayerController::OnMatchStateSet(FName State)
 {
 	MatchState = State;
 
-	if (MatchState == MatchState::InProgress)
+	if (MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
 		if (BlasterHUD)
 		{
+			BlasterHUD->AddAnnouncement();
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+		if (BlasterHUD)
+		{
+			BlasterHUD->CloseAnnouncement();
 			BlasterHUD->AddCharacterOverlay();
 			InitHUD();
 		}

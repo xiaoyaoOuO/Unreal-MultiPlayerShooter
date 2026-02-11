@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "Blast/HUD/CharacterOverlay.h"
+#include "Blast/HUD/Announcement.h"
 #include "BlasterHUD.generated.h"
 
 
@@ -38,16 +39,25 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUserWidget> AnnouncementClass;
+
 	UPROPERTY()
 	UCharacterOverlay* CharacterOverlay;
 	float CrosshairSpreadMax = 16.f;
+
+	UPROPERTY()
+	UAnnouncement* Announcement;
 	
 public:
 	virtual void BeginPlay() override;
 	virtual void DrawHUD() override;
 	void DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCenter,FLinearColor DrawColor,FVector2D Spread = FVector2D::ZeroVector);
 	void AddCharacterOverlay();
+	void AddAnnouncement();
+	void CloseAnnouncement();
 	
-	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;};
-	FORCEINLINE UCharacterOverlay* GetCharacterOverlay() const {return CharacterOverlay;};
+	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;}
+	FORCEINLINE UCharacterOverlay* GetCharacterOverlay() const {return CharacterOverlay;}
+	FORCEINLINE UAnnouncement* GetAnnouncement() const {return Announcement;}
 };

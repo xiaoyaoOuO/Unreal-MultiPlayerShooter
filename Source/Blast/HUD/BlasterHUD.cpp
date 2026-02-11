@@ -62,6 +62,7 @@ void ABlasterHUD::DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCe
 
 void ABlasterHUD::AddCharacterOverlay()
 {
+	if (CharacterOverlay) return;
 	if (APlayerController* PlayerController = GetOwningPlayerController())
 	{
 		if (CharacterOverlayClass)
@@ -73,5 +74,30 @@ void ABlasterHUD::AddCharacterOverlay()
 				CharacterOverlay->AddToViewport();
 			}
 		}
+	}
+}
+
+void ABlasterHUD::AddAnnouncement()
+{
+	if (Announcement) return;
+	if (APlayerController* PlayerController = GetOwningPlayerController())
+	{
+		if (AnnouncementClass)
+		{
+			Announcement = CreateWidget<UAnnouncement>(PlayerController,AnnouncementClass);
+			if (Announcement)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Announcement Added to Viewport"));
+				Announcement->AddToViewport();
+			}
+		}
+	}
+}
+
+void ABlasterHUD::CloseAnnouncement()
+{
+	if (Announcement)
+	{
+		Announcement->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

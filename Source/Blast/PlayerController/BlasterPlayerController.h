@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blast/HUD/BlasterHUD.h"
+#include "GameFramework/GameMode.h"
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
@@ -12,6 +13,7 @@ enum EHUDType
 {
 	EHT_CarriedAmmo,
 	EHT_CountDownTimer,
+	EHT_WarmUpTimer,
 	EHT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
@@ -21,6 +23,29 @@ struct FHUDData
 	GENERATED_BODY()
 	int32 CarriedAmmo;
 	float CountDownTime;
+};
+
+USTRUCT()
+struct FServerMatchState
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	float MatchTime;
+	UPROPERTY()
+	float WarmUpTime;
+	UPROPERTY()
+	float LevelStartTime;
+	UPROPERTY()
+	FName MatchState;
+
+	FServerMatchState(float MatchTime = 0.f, float WarmUpTime = 0.f, float LevelStartTime = 0.f,FName MatchState = MatchState::Aborted)
+	{
+		this->MatchTime = MatchTime;
+		this->WarmUpTime = WarmUpTime;
+		this->LevelStartTime = LevelStartTime;
+		this->MatchState = MatchState;
+	}
 };
 
 /**
@@ -37,7 +62,9 @@ private:
 	/*
 	 * 计时
 	 */
-	float MatchTime = 120.f;
+	float MatchTime;
+	float WarmUpTime;
+	float LevelStartTime;
 	uint32 CountDownSeconds;
 	float SyncTimeFrequency = 5.f;
 	float SyncTimeTimer;  //用于计时，到达frequency就进行一次同步
@@ -66,6 +93,12 @@ protected:
 	UFUNCTION(Client,Reliable)
 	void Client_ReportServerTime(float TimeOfClientRequest,float TimeServerReceivedClientRequest);
 
+	UFUNCTION(Server,Reliable)
+	void Server_RequestServerMatchState();
+
+	UFUNCTION(Client,Reliable)
+	void Client_ReportServerMatchState(const FServerMatchState& ServerMatchState);
+
 	float GetServerTime();
 public:
 	void SetBlasterPlayerHealth(float Health,float MaxHealth);
@@ -73,6 +106,7 @@ public:
 	void SetBlasterPlayerDefeat(int32 Defeat);
 	void SetBlasterPlayerAmmoAmount(int32 AmmoAmount);
 	void SetBlasterPlayerHUDData(const EHUDType& HUDType,const FHUDData& Data);
+	void SetAnnouncementHUDData(const EHUDType& HUDType,const FHUDData& Data);
 	void OnMatchStateSet(FName State);
 	void InitHUD();
 };

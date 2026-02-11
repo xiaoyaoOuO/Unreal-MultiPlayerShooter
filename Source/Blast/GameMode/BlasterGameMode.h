@@ -27,7 +27,16 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float WarmUpTime = 10.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MatchTime = 120.f;
 	
 	float CountDownTime = 0.f;
 	float LevelStartTime = 0.f;
+
+public:
+	FORCEINLINE float GetElimScore() const { return ElimScore; }
+	FORCEINLINE float GetWarmUpTime() const { return WarmUpTime; }
+	FORCEINLINE float GetMatchTime() const { return MatchTime; }
+	FORCEINLINE float GetLevelStartTime() const { return LevelStartTime; }
 };
