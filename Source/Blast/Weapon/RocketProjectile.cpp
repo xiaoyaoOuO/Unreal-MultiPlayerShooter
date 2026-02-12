@@ -2,6 +2,9 @@
 
 
 #include "RocketProjectile.h"
+
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 
 ARocketProjectile::ARocketProjectile()
@@ -31,7 +34,8 @@ static bool ApplyRadialDamageWithFalloff(
 	ECollisionChannel DamagePreventionChannel = ECC_Visibility)
   (class UGameplayStatics 中
  */
-	if (AActor* FireInstigator = GetInstigator())
+	AActor* FireInstigator = GetInstigator();
+	if (FireInstigator && HasAuthority())
 	{
 		if (AController* InstigatorController = FireInstigator->GetInstigatorController())
 		{
@@ -50,5 +54,82 @@ static bool ApplyRadialDamageWithFalloff(
 			);
 		}
 	}
-	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, HitResult);
+
+	/*不调用父类OnHit，单独处理OnHit情况*/
+	PlayDestroyedEffect();
+
+	//Delay一段时间再销毁，保留一段时间特效
+	GetWorldTimerManager().SetTimer(
+		OnHitTimer,
+		[this]()
+		{
+			Destroy();
+		},
+		DestroyDelay,
+		false
+	);
+
+	if (RocketMesh)
+	{
+		RocketMesh->SetVisibility(false);
+	}
+	if (this->ProjectileMovementComponent)
+	{
+		ProjectileMovementComponent->StopMovementImmediately();
+		ProjectileMovementComponent->Deactivate();
+	}
+	if (RocketTrailComponent)
+	{
+		RocketTrailComponent->Deactivate();
+	}
+	if (AudioComponent && AudioComponent->IsPlaying())
+	{
+		AudioComponent->Stop();
+	}
+}
+
+void ARocketProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Destroyed啥也没干，需要客户端自己处理OnHit
+	if (!HasAuthority())
+	{
+		BoxComponent->OnComponentHit.AddDynamic(this,&ARocketProjectile::OnHit);
+	}
+
+	if (RocketTrailNiagaraSystem)
+	{
+		RocketTrailComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			RocketTrailNiagaraSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition,
+			false
+		);
+	}
+
+	if (RocketSound)
+	{
+		AudioComponent = UGameplayStatics::SpawnSoundAttached(
+			RocketSound,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition,
+			false,
+			1,
+			1,
+			0,
+			RocketSoundAttenuation
+		);
+	}
+}
+
+void ARocketProjectile::Destroyed()
+{
+	//什么也不干
 }

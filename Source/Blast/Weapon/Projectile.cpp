@@ -57,9 +57,8 @@ void AProjectile::BeginPlay()
 	
 }
 
-void AProjectile::Destroyed()
+void AProjectile::PlayDestroyedEffect()
 {
-	Super::Destroyed();
 	if (DestroyedImpact)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),DestroyedImpact,GetActorTransform());
@@ -68,6 +67,12 @@ void AProjectile::Destroyed()
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(),DestroyedSound,GetActorLocation());
 	}
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+	PlayDestroyedEffect();
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,

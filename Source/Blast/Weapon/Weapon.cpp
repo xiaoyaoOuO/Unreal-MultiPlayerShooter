@@ -125,6 +125,8 @@ void AWeapon::Tick(const float DeltaTime)
 void AWeapon::AddAmmo(int32 Amount)
 {
 	AmmoAmount = FMath::Clamp(AmmoAmount + Amount, 0, MagCapacity);
+
+	UpdateAmmoAmountHUD();
 }
 
 void AWeapon::ShowPickUpWidget(const bool bShowPickupWidget) const
