@@ -477,7 +477,7 @@ void ABlasterCharacter::PlayReloadMontage()
 		EWeaponType EquippedWeaponType = CombatComponent->EquippedWeapon->Get_WeaponType();
 		switch (EquippedWeaponType)
 		{
-		case EWT_AssaultRifle:
+		case EWeaponType::EWT_AssaultRifle:
 			SlotName = FName("Rifle");
 			break;
 		default:

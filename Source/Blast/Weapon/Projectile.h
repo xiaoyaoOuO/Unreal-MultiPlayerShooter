@@ -37,13 +37,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	UProjectileMovementComponent* ProjectileMovementComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category="Projectile")
 	class UParticleSystem* Tracer;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category="Projectile")
 	class UParticleSystem* DestroyedImpact;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category="Projectile")
 	class USoundCue* DestroyedSound;
 
 	UPROPERTY()

@@ -15,7 +15,7 @@ class BLAST_API AProjectileWeapon : public AWeapon
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category="Weapon")
 	TSubclassOf<class AProjectile> ProjectileClass;
 
 public:

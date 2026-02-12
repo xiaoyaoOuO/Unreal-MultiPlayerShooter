@@ -61,6 +61,8 @@ protected:
 	ABlasterPlayerController* BlasterPlayerController;
 	UPROPERTY()
 	ABlasterCharacter* BlasterPlayerCharacter;
+
+	UPROPERTY(EditAnywhere,Category = "Weapon")
 	EWeaponType WeaponType;
 	
 public:	
@@ -89,25 +91,25 @@ public:
 	FORCEINLINE int32 Get_MagCapacity() const {return MagCapacity;}
 	
 public:
-	UPROPERTY(VisibleAnywhere,Category =  "Weapon Properties")
+	UPROPERTY(VisibleAnywhere,Category =  "Weapon")
 	USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere,Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere,Category = "Weapon")
 	class USphereComponent* AreaSphere;
 
-	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_WeaponState,Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_WeaponState,Category = "Weapon")
 	EWeaponState WeaponState;
 
-	UPROPERTY(VisibleAnywhere,Category = "Weapon Properties")
+	UPROPERTY(VisibleAnywhere,Category = "Weapon")
 	UWidgetComponent* PickUpWidget;
 	
-	UPROPERTY(EditAnywhere,Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere,Category = "Weapon")
 	UAnimationAsset* FireAnimationAsset;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category = "Weapon") 
 	TSubclassOf<ACasting> BulletShell;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Category = "Weapon")
 	USoundCue* EquippedSound;
 
 	/*
@@ -139,15 +141,15 @@ public:
 	/*
 	 * 开火属性
 	 */
-	UPROPERTY(EditAnywhere,Category="Weapon Attributes")
+	UPROPERTY(EditAnywhere,Category="Weapon")
 	float FireDelay = 0.15f;
-	UPROPERTY(EditAnywhere,Category="Weapon Attributes")
+	UPROPERTY(EditAnywhere,Category="Weapon")
 	bool bAutomaticFire = true;
 
 private:
-	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_AmmoAmount,Category="Weapon Attributes")
+	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_AmmoAmount,Category="Weapon")
 	int32 AmmoAmount;
 
-	UPROPERTY(EditAnywhere,Replicated,Category="Weapon Attributes")
+	UPROPERTY(EditAnywhere,Replicated,Category="Weapon")
 	int32 MagCapacity;
 };
