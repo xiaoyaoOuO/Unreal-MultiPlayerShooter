@@ -21,5 +21,7 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* TitleText;           //cooldown状态和warmup状态下的标题
-	
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* InfoText;
 };

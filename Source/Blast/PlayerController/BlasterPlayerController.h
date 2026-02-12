@@ -122,4 +122,5 @@ public:
 	void SetAnnouncementHUDData(const EHUDType& HUDType,const FHUDData& Data);
 	void OnMatchStateSet(FName State);
 	void InitHUD();
+	void DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data);
 };

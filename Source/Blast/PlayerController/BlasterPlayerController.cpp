@@ -5,8 +5,10 @@
 
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/GameMode/BlasterGameMode.h"
+#include "Blast/GameState/BlasterGameState.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/GameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::HandleMatchStarted()
@@ -302,25 +304,13 @@ void ABlasterPlayerController::SetAnnouncementHUDData(const EHUDType& HUDType, c
 		{
 			Announcement->TitleText->SetText(FText::FromString(TEXT("热身阶段")));
 		}
+		if (Announcement->InfoText)
+		{
+			Announcement->InfoText->SetText(FText::FromString(TEXT("准备好迎接战斗了么?")));
+		}
 		break;
 	case EHT_CoolDown:
-		if (Announcement->WarmUpTimerText)
-		{
-			uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
-			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
-
-			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
-			if (Data.CountDownTime <= 0.f)
-			{
-				CountDownTimeString = FString("");
-			}
-			Announcement->WarmUpTimerText->SetText(FText::FromString(CountDownTimeString));
-		}
-		if (Announcement->TitleText)
-		{
-			FText TitleString = FText::FromString(TEXT("比赛结束,倒计时结束重新开始"));
-			Announcement->TitleText->SetText(TitleString);
-		}
+		DrawCoolDownHUD(Announcement,Data);
 		break;
 	default:
 		break;
@@ -355,6 +345,53 @@ void ABlasterPlayerController::InitHUD()
 	{
 		BlasterCharacter->UpdateHealthHUD();
 		BlasterCharacter->PollInit();
+	}
+}
+
+void ABlasterPlayerController::DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data)
+{
+	if (Announcement->WarmUpTimerText)
+	{
+		uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
+		uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
+
+		FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+		if (Data.CountDownTime <= 0.f)
+		{
+			CountDownTimeString = FString("");
+		}
+		Announcement->WarmUpTimerText->SetText(FText::FromString(CountDownTimeString));
+	}
+	if (Announcement->TitleText)
+	{
+		FText TitleString = FText::FromString(TEXT("比赛结束,倒计时结束重新开始"));
+		Announcement->TitleText->SetText(TitleString);
+	}
+	if (Announcement->InfoText)
+	{
+		if (ABlasterGameState* GameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this)))
+		{
+			UE_LOG(LogTemp,Warning,TEXT("UpdateScore With GameState"));
+			TArray<ABlasterPlayerState*> ScorePlayers = GameState->TopScoringPlayers;
+			FText InfoText;
+			if (ScorePlayers.Num() == 0)
+			{
+				InfoText = FText::FromString(TEXT("没有玩家得分"));
+			}else if (ScorePlayers.Num() == 1)
+			{
+				FString WinnerName = ScorePlayers[0]->GetPlayerName();
+				InfoText = FText::FromString(FString::Printf(TEXT("胜利者: %s"), *WinnerName));
+			}else
+			{
+				FString WinnerNames;
+				for (const auto BlasterPlayerState : ScorePlayers)
+				{
+					WinnerNames += BlasterPlayerState->GetPlayerName() + TEXT("\n");
+				}
+				InfoText = FText::FromString(FString::Printf(TEXT("胜利者:\n %s"), *WinnerNames));
+			}
+			Announcement->InfoText->SetText(InfoText);
+		}
 	}
 }
 

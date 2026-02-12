@@ -4,6 +4,7 @@
 #include "BlasterGameMode.h"
 
 #include "Blast/Character/BlasterCharacter.h"
+#include "Blast/GameState/BlasterGameState.h"
 #include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/PlayerStart.h"
@@ -77,7 +78,14 @@ void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
 		ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
 		if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
 		{
-			AttackerPlayerState->AddPlayerScore(ElimScore);
+			if (MatchState == MatchState::InProgress)
+			{
+				AttackerPlayerState->AddPlayerScore(ElimScore);
+				if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
+				{
+					BlasterGameState->UpdateScore(AttackerPlayerState);
+				}
+			}
 		}
 	}
 	if (VictimController)
