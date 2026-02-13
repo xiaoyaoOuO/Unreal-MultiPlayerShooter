@@ -257,6 +257,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle,InitialCarried_AR_Ammo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher,InitialCarried_Rocket_Ammo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol,InitialCarried_Pistol_Ammo);
 }
 
 int32 UCombatComponent::AmountToReload(const EWeaponType& WeaponType) const

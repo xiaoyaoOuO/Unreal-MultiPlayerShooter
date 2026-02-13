@@ -124,6 +124,8 @@ private:
 	int32 InitialCarried_AR_Ammo;
 	UPROPERTY(EditAnywhere,Category="Combat")
 	int32 InitialCarried_Rocket_Ammo;
+	UPROPERTY(EditAnywhere,Category="Combat")
+	int32 InitialCarried_Pistol_Ammo;
 	TMap<EWeaponType,int32> CarriedAmmoMap;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
