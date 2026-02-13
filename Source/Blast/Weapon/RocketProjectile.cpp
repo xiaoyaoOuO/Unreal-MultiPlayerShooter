@@ -3,6 +3,7 @@
 
 #include "RocketProjectile.h"
 
+#include "RocketMovementComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,11 +13,23 @@ ARocketProjectile::ARocketProjectile()
 	RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>("RocketMesh");
 	RocketMesh->SetupAttachment(RootComponent);
 	RocketMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	
+	//子弹移动组件
+	ProjectileMovementComponent = CreateDefaultSubobject<URocketMovementComponent>(TEXT("RocketProjectileMovementComponent"));
+	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	ProjectileMovementComponent->SetIsReplicated(true);
+	ProjectileMovementComponent->InitialSpeed = 5000.0f;
+	ProjectileMovementComponent->MaxSpeed     = 5000.0f;
 }
 
 void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                               FVector NormalImpulse, const FHitResult& HitResult)
 {
+	if (OtherActor == GetOwner())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ARocketProjectile::OnHit, hit self, ignore"));
+		return;
+	}
 /*
 * UFUNCTION(BlueprintCallable)
 static bool ApplyRadialDamageWithFalloff(

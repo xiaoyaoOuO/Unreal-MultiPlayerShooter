@@ -519,6 +519,8 @@ void ABlasterCharacter::Elim()
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
 		CombatComponent->EquippedWeapon->Dropped();
+		// Clear the reference so Destroyed() won't delete the dropped weapon.
+		CombatComponent->EquippedWeapon = nullptr;
 	}
 
 	//禁用移动，禁用碰撞
