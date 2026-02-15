@@ -14,7 +14,7 @@ class BLAST_API AHitScanWeapon : public AWeapon
 {
 	GENERATED_BODY()
 
-private:
+protected:
 	UPROPERTY(EditDefaultsOnly,Category="Weapon")
 	float Damage;
 
@@ -24,7 +24,25 @@ private:
 	UPROPERTY(EditAnywhere,Category=  "Weapon")
 	UParticleSystem* BeamParticle;
 
-public:
-	virtual void Fire(const FVector& HitTarget) override;
+	UPROPERTY(EditAnywhere,Category=  "Weapon")
+	UParticleSystem* FireParticle;
+
+	UPROPERTY(EditAnywhere,Category=  "Weapon")
+	USoundCue* FireSound;
 	
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	float ScatterRadius = 75.f;
+
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	float SphereDistance;
+	
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	bool bUseScatter = false;
+public:
+	void FireEffect(const FVector& StartLocation,const FVector& BeamLocation);
+	virtual void Fire(const FVector& HitTarget) override;
+
+protected:
+	virtual FVector TraceEndWithScatter(const FVector& StartLocation,const FVector& HitTarget);
+	virtual void WeaponHit(FHitResult& HitResult,const UWorld* World, const FVector& StartLocation ,const FVector& HitTarget);
 };

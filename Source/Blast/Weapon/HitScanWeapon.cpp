@@ -5,14 +5,33 @@
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
+
+void AHitScanWeapon::FireEffect(const FVector& StartLocation,const FVector& BeamLocation)
+{
+	if (BeamParticle)
+	{
+		if (UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(this,BeamParticle,StartLocation))
+		{
+			Beam->SetVectorParameter("Target",BeamLocation);
+		}
+	}
+	if (FireParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this,FireParticle,StartLocation);
+	}
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this,FireSound,StartLocation);
+	}
+}
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
 	AActor* WeaponOwner =  GetOwner();
 	if (WeaponOwner == nullptr || WeaponMesh == nullptr) return;
-	AController* Controller = WeaponOwner->GetInstigatorController();
 
 	if (UWorld* World = GetWorld())
 	{
@@ -20,32 +39,46 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		{
 			FHitResult HitResult;
 			FVector StartLocation = MuzzleSocket->GetSocketTransform(WeaponMesh).GetLocation();
-			FVector EndLocation = StartLocation + (HitTarget - StartLocation) * 1.25f;
-			FVector BeamLocation = EndLocation;
-			World->LineTraceSingleByChannel(HitResult, MuzzleSocket->GetSocketTransform(WeaponMesh).GetLocation(), EndLocation, ECC_Visibility);
-			if (HitResult.bBlockingHit)
-			{
-				BeamLocation = HitResult.ImpactPoint;
-				if (AActor* HitActor = HitResult.GetActor())
-				{
-					if (HasAuthority() && Controller)
-					{
-						UGameplayStatics::ApplyDamage(HitActor,Damage,Controller,this,UDamageType::StaticClass());
-					}
-				}
-
-				if (HitParticle)
-				{
-					UGameplayStatics::SpawnEmitterAtLocation(this,HitParticle,HitResult.ImpactPoint,HitResult.ImpactNormal.Rotation());
-				}
-			}
-			if (BeamParticle)
-			{
-				if (UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(this,BeamParticle,StartLocation))
-				{
-					Beam->SetVectorParameter("Target",BeamLocation);
-				}
-			}
+			WeaponHit(HitResult,World,StartLocation,HitTarget);
 		}
 	}
+}
+
+FVector AHitScanWeapon::TraceEndWithScatter(const FVector& StartLocation, const FVector& HitTarget)
+{
+	if (!bUseScatter) return HitTarget;
+	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
+	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
+
+	DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
+	//在散射范围内随机一个点
+	FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
+	FVector RandomPoint = SphereCenter + RandomScaterVector;
+	DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
+	return RandomPoint;
+}
+
+void AHitScanWeapon::WeaponHit(FHitResult& HitResult,const UWorld* World,const FVector& StartLocation,const FVector& HitTarget)
+{
+	FVector EndLocation = StartLocation + (TraceEndWithScatter(StartLocation,HitTarget) - StartLocation) * 1.25f;
+	World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility);
+	FVector BeamLocation = EndLocation;
+	if (HitResult.bBlockingHit)
+	{
+		BeamLocation = HitResult.ImpactPoint;
+		AController* Controller = GetOwner() ? GetOwner()->GetInstigatorController() : nullptr;
+		if (AActor* HitActor = HitResult.GetActor())
+		{
+			if (HasAuthority() && Controller)
+			{
+				UGameplayStatics::ApplyDamage(HitActor,Damage,Controller,this,UDamageType::StaticClass());
+			}
+		}
+
+		if (HitParticle)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(this,HitParticle,HitResult.ImpactPoint,HitResult.ImpactNormal.Rotation());
+		}
+	}
+	FireEffect(StartLocation, BeamLocation);
 }

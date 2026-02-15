@@ -22,18 +22,30 @@ void ABlasterHUD::DrawHUD()
 		float SpreadScaled = HUD.SpreadSize * CrosshairSpreadMax;
 		FVector2D Spread = FVector2D::ZeroVector;
 
-		if (this->HUD.CheckNull())
+		FLinearColor DrawColor = HUD.CrosshairColor;
+		if (HUD.CrosshairsCenter)
 		{
-			FLinearColor DrawColor = HUD.CrosshairColor;
 			DrawCrosshairs(HUD.CrosshairsCenter, ViewPortCenter,DrawColor,Spread);
-			Spread.X = -SpreadScaled;
+		}
+		Spread.X = -SpreadScaled;
+		if (HUD.CrosshairsLeft)
+		{
 			DrawCrosshairs(HUD.CrosshairsLeft, ViewPortCenter,DrawColor,Spread);
-			Spread.X = SpreadScaled;
+		}
+		Spread.X = SpreadScaled;
+		if (HUD.CrosshairsRight)
+		{
 			DrawCrosshairs(HUD.CrosshairsRight, ViewPortCenter,DrawColor,Spread);
-			Spread.X = 0.f;
-			Spread.Y = -SpreadScaled;
+		}
+		Spread.X = 0.f;
+		Spread.Y = -SpreadScaled;
+		if (HUD.CrosshairsTop)
+		{
 			DrawCrosshairs(HUD.CrosshairsTop, ViewPortCenter,DrawColor,Spread);
-			Spread.Y = SpreadScaled;
+		}
+		Spread.Y = SpreadScaled;
+		if (HUD.CrosshairsBottom)
+		{
 			DrawCrosshairs(HUD.CrosshairsBottom, ViewPortCenter,DrawColor,Spread);
 		}
 	}

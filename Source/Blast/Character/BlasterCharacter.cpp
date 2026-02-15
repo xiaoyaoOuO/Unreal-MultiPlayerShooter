@@ -486,6 +486,11 @@ void ABlasterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_Pistol:
 			SlotName = FName("Rifle");            //TODO:目前没有实现别的武器的重载动画，所以先用步枪的重载动画
 			break;
+		case EWeaponType::EWT_SMG:
+			SlotName = FName("Rifle");           
+			break;
+		case EWeaponType::EWT_Shotgun:
+			SlotName = FName("Rifle");
 		default:
 			break;
 		}
