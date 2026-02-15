@@ -491,6 +491,8 @@ void ABlasterCharacter::PlayReloadMontage()
 			break;
 		case EWeaponType::EWT_Shotgun:
 			SlotName = FName("Rifle");
+		case EWeaponType::EWT_SniperRifle:
+			SlotName = FName("Rifle");
 		default:
 			break;
 		}
@@ -569,6 +571,12 @@ void ABlasterCharacter::Elim()
 	if (BotSoundCue)
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(),BotSoundCue,GetActorLocation());
+	}
+
+	bool bHideSniperScopeWidget = CombatComponent && CombatComponent->bAiming && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_SniperRifle;
+	if (bHideSniperScopeWidget)
+	{
+		ShowSniperScopeWidget(false);
 	}
 }
 

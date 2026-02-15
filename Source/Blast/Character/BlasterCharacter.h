@@ -201,6 +201,9 @@ public:
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	ECombatState Get_CombatState() const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScopeWidget);
 	
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}

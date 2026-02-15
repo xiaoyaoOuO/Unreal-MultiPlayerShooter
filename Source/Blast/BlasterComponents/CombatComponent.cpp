@@ -260,6 +260,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol,InitialCarried_Pistol_Ammo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SMG,InitialCarried_SMG_Ammo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun,InitialCarried_Shotgun_Ammo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle,InitialCarried_Sniper_Ammo);
 }
 
 int32 UCombatComponent::AmountToReload(const EWeaponType& WeaponType) const
@@ -399,12 +400,17 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
 	bAiming = bIsAiming;	//客户端预测
 	Server_SetAiming(bIsAiming);	//服务端校验
     if (Character)
     {
         Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimingMoveSpeed : BaseMoveSpeed;
     }
+	if (Character->IsLocallyControlled() && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_SniperRifle)
+	{
+		Character->ShowSniperScopeWidget(bIsAiming);
+	}
 }
 
 void UCombatComponent::Fire()
