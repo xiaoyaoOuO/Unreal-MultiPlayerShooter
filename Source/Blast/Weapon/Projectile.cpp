@@ -68,10 +68,47 @@ void AProjectile::Destroyed()
 	PlayDestroyedEffect();
 }
 
+void AProjectile::ExplodeDamage()
+{
+}
+
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                         FVector NormalImpulse, const FHitResult& HitResult)
 {
 	Destroy();
+}
+
+void AProjectile::BulletSpawnEffect()
+{
+	if (TrailNiagaraSystem)
+	{
+		TrailComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailNiagaraSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition,
+			false
+		);
+	}
+
+	if (SpawnSound)
+	{
+		AudioComponent = UGameplayStatics::SpawnSoundAttached(
+			SpawnSound,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition,
+			false,
+			1,
+			1,
+			0,
+			SpawnSoundAttenuation
+		);
+	}
 }
 
 // Called every frame

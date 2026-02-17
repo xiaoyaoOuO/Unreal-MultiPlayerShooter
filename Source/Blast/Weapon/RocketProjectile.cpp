@@ -47,26 +47,7 @@ static bool ApplyRadialDamageWithFalloff(
 	ECollisionChannel DamagePreventionChannel = ECC_Visibility)
   (class UGameplayStatics 中
  */
-	AActor* FireInstigator = GetInstigator();
-	if (FireInstigator && HasAuthority())
-	{
-		if (AController* InstigatorController = FireInstigator->GetInstigatorController())
-		{
-			UGameplayStatics::ApplyRadialDamageWithFalloff(
-				this,
-				Damage,
-				10.f,
-				GetActorLocation(),
-				200.f,
-				500.f,
-				1.f,
-				UDamageType::StaticClass(),
-				TArray<AActor*>(),
-				this,
-				InstigatorController
-			);
-		}
-	}
+	ExplodeDamage();
 
 	/*不调用父类OnHit，单独处理OnHit情况*/
 	PlayDestroyedEffect();
@@ -91,9 +72,9 @@ static bool ApplyRadialDamageWithFalloff(
 		ProjectileMovementComponent->StopMovementImmediately();
 		ProjectileMovementComponent->Deactivate();
 	}
-	if (RocketTrailComponent)
+	if (TrailComponent)
 	{
-		RocketTrailComponent->Deactivate();
+		TrailComponent->Deactivate();
 	}
 	if (AudioComponent && AudioComponent->IsPlaying())
 	{
@@ -111,38 +92,34 @@ void ARocketProjectile::BeginPlay()
 		BoxComponent->OnComponentHit.AddDynamic(this,&ARocketProjectile::OnHit);
 	}
 
-	if (RocketTrailNiagaraSystem)
-	{
-		RocketTrailComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RocketTrailNiagaraSystem,
-			GetRootComponent(),
-			FName(),
-			GetActorLocation(),
-			GetActorRotation(),
-			EAttachLocation::Type::KeepWorldPosition,
-			false
-		);
-	}
-
-	if (RocketSound)
-	{
-		AudioComponent = UGameplayStatics::SpawnSoundAttached(
-			RocketSound,
-			GetRootComponent(),
-			FName(),
-			GetActorLocation(),
-			GetActorRotation(),
-			EAttachLocation::Type::KeepWorldPosition,
-			false,
-			1,
-			1,
-			0,
-			RocketSoundAttenuation
-		);
-	}
+	BulletSpawnEffect();
 }
 
 void ARocketProjectile::Destroyed()
 {
 	//什么也不干
+}
+
+void ARocketProjectile::ExplodeDamage()
+{
+	AActor* FireInstigator = GetInstigator();
+	if (FireInstigator && HasAuthority())
+	{
+		if (AController* InstigatorController = FireInstigator->GetInstigatorController())
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(
+				this,
+				Damage,
+				10.f,
+				GetActorLocation(),
+				200.f,
+				500.f,
+				1.f,
+				UDamageType::StaticClass(),
+				TArray<AActor*>(),
+				this,
+				InstigatorController
+			);
+		}
+	}
 }

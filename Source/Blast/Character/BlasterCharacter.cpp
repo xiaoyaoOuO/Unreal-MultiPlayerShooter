@@ -491,8 +491,13 @@ void ABlasterCharacter::PlayReloadMontage()
 			break;
 		case EWeaponType::EWT_Shotgun:
 			SlotName = FName("Rifle");
+			break;
 		case EWeaponType::EWT_SniperRifle:
 			SlotName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			SlotName = FName("Rifle");
+			break;
 		default:
 			break;
 		}

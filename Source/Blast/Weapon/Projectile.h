@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Projectile.generated.h"
 
 UCLASS()
@@ -24,6 +25,7 @@ protected:
 	virtual void BeginPlay() override;
 	void PlayDestroyedEffect();
 	virtual void Destroyed() override;
+	virtual void ExplodeDamage();
 
 	UPROPERTY(EditAnywhere)
 	float Damage;
@@ -49,4 +51,24 @@ private:
 
 	UPROPERTY()
 	UParticleSystemComponent* TracerParticleComponent;
+
+
+protected:
+	UPROPERTY(EditAnywhere,Category="Projectile")
+	USoundCue* SpawnSound;
+
+	UPROPERTY(EditAnywhere,Category="Projectile")
+	USoundAttenuation* SpawnSoundAttenuation;
+
+	UPROPERTY()
+	UAudioComponent* AudioComponent;
+	
+	UPROPERTY(EditAnywhere,Category="Projectile")
+	UNiagaraSystem* TrailNiagaraSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* TrailComponent;
+
+protected:
+	void BulletSpawnEffect();
 };

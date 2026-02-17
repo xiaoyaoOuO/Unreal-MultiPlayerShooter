@@ -132,6 +132,8 @@ private:
 	int32 InitialCarried_Shotgun_Ammo;
 	UPROPERTY(EditAnywhere,Category="Combat")
 	int32 InitialCarried_Sniper_Ammo;
+	UPROPERTY(EditAnywhere,Category="Combat")
+	int32 InitialCarried_GrenadeLauncher_Ammo;
 	TMap<EWeaponType,int32> CarriedAmmoMap;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
