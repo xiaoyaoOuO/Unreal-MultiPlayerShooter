@@ -1,4 +1,7 @@
 #pragma once
+
+#define CUSTOM_DEPTH_BLUE 251
+#define CUSTOM_DEPTH_PURPLE 250
 UENUM()
 enum class EWeaponType : uint8
 {

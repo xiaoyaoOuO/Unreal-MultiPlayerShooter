@@ -25,6 +25,10 @@ AWeapon::AWeapon()
 	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
+	WeaponMesh->MarkRenderStateDirty();
+	WeaponMesh->SetRenderCustomDepth(true);
+	
 	AreaSphere = CreateDefaultSubobject<USphereComponent>("AreaSphere");
 	AreaSphere->SetupAttachment(RootComponent);
 	AreaSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
@@ -108,6 +112,14 @@ void AWeapon::UpdateAmmoAmountHUD()
 	}
 }
 
+void AWeapon::SetDepthRender(bool bEnable)
+{
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetRenderCustomDepth(bEnable);
+	}
+}
+
 void AWeapon::SpendAmmo()
 {
 	AmmoAmount = FMath::Clamp(AmmoAmount - 1, 0, MagCapacity);
@@ -151,6 +163,7 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 			WeaponMesh->SetEnableGravity(false);
 			WeaponMesh->SetSimulatePhysics(false);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			SetDepthRender(false);
 				break;
 		}
 		case EWeaponState::EWS_Dropped:
@@ -165,6 +178,7 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 			WeaponMesh->SetEnableGravity(true);
 			BlasterPlayerController = nullptr;
 			BlasterPlayerCharacter = nullptr;
+			SetDepthRender(true);
 				break;
 		}
 		default:
@@ -183,6 +197,7 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetEnableGravity(false);
 			WeaponMesh->SetSimulatePhysics(false);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			SetDepthRender(false);
 				break;
 		}
 		case EWeaponState::EWS_Dropped:
@@ -193,6 +208,7 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetEnableGravity(true);
 			BlasterPlayerController = nullptr;
 			BlasterPlayerCharacter = nullptr;
+			SetDepthRender(true);
 				break;
 		}
 		default:
