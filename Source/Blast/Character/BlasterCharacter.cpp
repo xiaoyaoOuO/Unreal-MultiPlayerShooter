@@ -481,22 +481,22 @@ void ABlasterCharacter::PlayReloadMontage()
 			SlotName = FName("Rifle");
 			break;
 		case EWeaponType::EWT_RocketLauncher:
-			SlotName = FName("Rifle");
+			SlotName = FName("RocketLauncher");
 			break;
 		case EWeaponType::EWT_Pistol:
-			SlotName = FName("Rifle");            //TODO:目前没有实现别的武器的重载动画，所以先用步枪的重载动画
+			SlotName = FName("Pistol");          
 			break;
 		case EWeaponType::EWT_SMG:
-			SlotName = FName("Rifle");           
+			SlotName = FName("Pistol");           
 			break;
 		case EWeaponType::EWT_Shotgun:
-			SlotName = FName("Rifle");
+			SlotName = FName("Shotgun");
 			break;
 		case EWeaponType::EWT_SniperRifle:
-			SlotName = FName("Rifle");
+			SlotName = FName("Sniper");
 			break;
 		case EWeaponType::EWT_GrenadeLauncher:
-			SlotName = FName("Rifle");
+			SlotName = FName("Rifle");                   //Grenade和Rifle共用一个动画
 			break;
 		default:
 			break;
@@ -525,6 +525,17 @@ void ABlasterCharacter::PollInit()
 			BlasterPlayerState->AddPlayerScore(0.f);
 			BlasterPlayerState->AddPlayerDefeat(0);
 		}
+	}
+}
+
+void ABlasterCharacter::JumpToShotgunEnd()
+{
+	USkeletalMeshComponent* CharacterMesh =  GetMesh();
+	if (CharacterMesh == nullptr) return;
+	if (UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance())
+	{
+		FName SlotName = FName("ShotgunEnd");
+		AnimInstance->Montage_JumpToSection(SlotName);
 	}
 }
 

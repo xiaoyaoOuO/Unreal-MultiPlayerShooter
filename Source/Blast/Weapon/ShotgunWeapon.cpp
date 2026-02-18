@@ -84,3 +84,16 @@ void AShotgunWeapon::WeaponHit(FHitResult& HitResult, const UWorld* World,
 		}
 	}
 }
+
+void AShotgunWeapon::OnRep_AmmoAmount()
+{
+	Super::OnRep_AmmoAmount();
+
+	if (IsFull())
+	{
+		if (BlasterPlayerCharacter)
+		{
+			BlasterPlayerCharacter->JumpToShotgunEnd();
+		}
+	}
+}

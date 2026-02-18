@@ -50,6 +50,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnReloadComplete();
 
+	UFUNCTION(BlueprintCallable)
+	void OnAddShotgunAmmo();
+	
 	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:
 	virtual void BeginPlay() override;

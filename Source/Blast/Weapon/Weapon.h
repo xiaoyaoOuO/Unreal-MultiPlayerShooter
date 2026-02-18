@@ -70,6 +70,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void AddAmmo(int32 Amount);
 
+	FORCEINLINE bool IsFull(){return AmmoAmount == MagCapacity;}
+
 	void ShowPickUpWidget(bool bShowPickupWidget) const;
 
 	void SetWeaponState(EWeaponState State);

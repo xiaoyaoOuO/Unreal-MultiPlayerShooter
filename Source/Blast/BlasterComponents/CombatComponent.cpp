@@ -27,6 +27,11 @@ void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarge
 	if (EquippedWeapon == nullptr) return;
 	if (Character)
 	{
+		if (CombatState == ECombatState::ECS_Reloading && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
+		{
+			Character->JumpToShotgunEnd();
+			return;
+		}
 		Character->PlayFireMontage();
 		EquippedWeapon->Fire(HitTarget);
 	}
@@ -189,11 +194,47 @@ void UCombatComponent::OnReloadComplete()
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
-		UpdateWeaponAmmo();
+		if (EquippedWeapon && EquippedWeapon->Get_WeaponType() != EWeaponType::EWT_Shotgun)
+		{
+			UpdateWeaponAmmo();
+		}
 	}
 	if (bFireButtonPressed)
 	{
 		Fire();
+	}
+}
+
+//动画添加一次子弹，就通知一次该函数
+void UCombatComponent::OnAddShotgunAmmo()
+{
+	if (Character == nullptr || !Character->HasAuthority()) return;
+	if (EquippedWeapon == nullptr) return;
+	if (EquippedWeapon -> IsFull())
+	{
+		Character->JumpToShotgunEnd();
+		return;
+	}
+	EWeaponType EquippedWeaponType = EquippedWeapon->Get_WeaponType();
+	if (CarriedAmmoMap.Contains(EquippedWeaponType))
+	{
+		if (CarriedAmmoMap[EquippedWeaponType] <= 0)
+		{
+			Character->JumpToShotgunEnd();
+			return;
+		}
+		constexpr int32 AmmoToAdd = 1;
+		EquippedWeapon->AddAmmo(AmmoToAdd);
+		//更新携带弹药量
+		CarriedAmmoMap[EquippedWeaponType] -= AmmoToAdd;
+		this->CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
+		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			FHUDData HUDData;
+			HUDData.CarriedAmmo = CarriedAmmoAmount;
+			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
+		}
 	}
 }
 
@@ -243,6 +284,10 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : Character;
 	if (Character)
 	{
+		if (CarriedAmmoAmount == 0 && CombatState == ECombatState::ECS_Reloading && EquippedWeapon &&EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
+		{
+			Character->JumpToShotgunEnd();
+		}
 		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 		if (Controller)
 		{
@@ -327,6 +372,10 @@ void UCombatComponent::FireTimerFinish()
 bool UCombatComponent::CanFire() const
 {
 	if (EquippedWeapon == nullptr) return false;
+	if (EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
+	{
+		return EquippedWeapon->Get_AmmoAmount()>0 && bCanFire;
+	}
 	return EquippedWeapon->Get_AmmoAmount() > 0 && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
 
@@ -435,7 +484,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmoAmount > 0 && CombatState != ECombatState::ECS_Reloading)
+	if (CarriedAmmoAmount > 0 && CombatState != ECombatState::ECS_Reloading && EquippedWeapon !=nullptr && EquippedWeapon->Get_AmmoAmount() < EquippedWeapon->Get_MagCapacity())
 	{
 		ServerReload();
 	}

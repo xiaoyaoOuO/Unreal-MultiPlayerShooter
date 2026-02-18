@@ -198,6 +198,7 @@ public:
 	void Elim();
 	void UpdateHealthHUD();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
+	void JumpToShotgunEnd();  //按个数添加散弹枪子弹，当满子弹后就跳跃至End
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	ECombatState Get_CombatState() const;
