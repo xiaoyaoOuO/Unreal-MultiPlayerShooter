@@ -60,6 +60,10 @@ ABlasterCharacter::ABlasterCharacter()
 	SetMinNetUpdateFrequency(33.f);
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline"));
+
+	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrenadeMesh"));
+	GrenadeMesh->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
@@ -114,6 +118,7 @@ void ABlasterCharacter::BeginPlay()
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
 	UpdateHealthHUD();
+	SetGrenadeVisibility(false);
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this,&ABlasterCharacter::ReceiveDamage);
@@ -554,6 +559,14 @@ void ABlasterCharacter::JumpToShotgunEnd()
 	{
 		FName SlotName = FName("ShotgunEnd");
 		AnimInstance->Montage_JumpToSection(SlotName);
+	}
+}
+
+void ABlasterCharacter::SetGrenadeVisibility(bool bVisible)
+{
+	if (GrenadeMesh)
+	{
+		GrenadeMesh->SetVisibility(bVisible);
 	}
 }
 

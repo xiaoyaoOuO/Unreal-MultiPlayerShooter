@@ -52,6 +52,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class ABlasterPlayerState* BlasterPlayerState;
 
+	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* GrenadeMesh;
+
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
 	
@@ -204,10 +207,12 @@ public:
 	void UpdateHealthHUD();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
 	void JumpToShotgunEnd();  //按个数添加散弹枪子弹，当满子弹后就跳跃至End
+	void SetGrenadeVisibility(bool bVisible);
+	
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	ECombatState Get_CombatState() const;
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScopeWidget);
 	
@@ -220,4 +225,5 @@ public:
 	FORCEINLINE float Get_MaxHealth() const {return MaxHealth;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
+	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const {return GrenadeMesh;}
 };

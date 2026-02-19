@@ -7,6 +7,7 @@
 #include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Components/ActorComponent.h"
 #include "Blast/HUD/BlasterHUD.h"
+#include "Blast/Weapon/Projectile.h"
 #include "Blast/Weapon/WeaponType.h"
 #include "CombatComponent.generated.h"
 
@@ -44,6 +45,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_GrenadeToss();
 
+	UFUNCTION(Server, Reliable)
+	void Server_SpawnGrenade(const FVector_NetQuantize HitTarget);
+
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 	void UpdateHUD(float DeltaTime);
@@ -60,6 +64,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnGrenadeTossFinished();
+
+	UFUNCTION(BlueprintCallable)
+	void OnGrenadeLaunch();
 	
 	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:
@@ -151,4 +158,7 @@ private:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
 	ECombatState CombatState;
+
+	UPROPERTY(EditAnywhere,Category="Combat")
+	TSubclassOf<AProjectile> ThrownGrenade;
 };

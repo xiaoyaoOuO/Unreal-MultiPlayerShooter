@@ -3,6 +3,7 @@
 
 #include "CombatComponent.h"
 
+#include "Blast/Weapon/Projectile.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -55,7 +56,28 @@ void UCombatComponent::Server_GrenadeToss_Implementation()
 	if (Character)
 	{
 		Character->PlayGrenadeMontage();
+		Character->SetGrenadeVisibility(true);
 		PutWeaponToBack();
+	}
+}
+
+void UCombatComponent::Server_SpawnGrenade_Implementation(const FVector_NetQuantize HitTarget)
+{
+	if (Character == nullptr || ThrownGrenade == nullptr) return;
+	FVector SpawnLocation = Character->GetGrenadeMesh()->GetComponentLocation();
+	FVector ToTarget = HitTarget - SpawnLocation;
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = Character;
+	SpawnParameters.Instigator = Character;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->SpawnActor<AProjectile>(
+			ThrownGrenade,
+			SpawnLocation,
+			ToTarget.Rotation(),
+			SpawnParameters
+		);
 	}
 }
 
@@ -252,6 +274,18 @@ void UCombatComponent::OnGrenadeTossFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
 	AttachWeaponToRightHand(EquippedWeapon);
+}
+
+void UCombatComponent::OnGrenadeLaunch()
+{
+	if (Character)
+	{
+		Character->SetGrenadeVisibility(false);
+		if (Character->IsLocallyControlled())
+		{
+			Server_SpawnGrenade(HitTargetPoint);
+		}
+	}
 }
 
 void UCombatComponent::BeginPlay()
@@ -529,6 +563,7 @@ void UCombatComponent::ThrowGrenade()
 	if (Character)
 	{
 		Character->PlayGrenadeMontage();
+		Character->SetGrenadeVisibility(true);
 		PutWeaponToBack();
 		if (!Character->HasAuthority())
 		{
@@ -564,6 +599,7 @@ void UCombatComponent::OnRep_CombatState()
 		if (Character && !Character->IsLocallyControlled())
 		{
 			Character->PlayGrenadeMontage();
+			Character->SetGrenadeVisibility(true);
 			PutWeaponToBack();
 		}
 		break;
