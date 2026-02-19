@@ -153,6 +153,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire",IE_Pressed,this,&ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire",IE_Released,this,&ABlasterCharacter::FireButtonReleased);
 	PlayerInputComponent->BindAction("Reload",IE_Pressed,this,&ABlasterCharacter::ReloadButtonPressed);
+	PlayerInputComponent->BindAction("GrenadeToss",IE_Pressed,this,&ABlasterCharacter::GrenadeButtonPressed);
 
 	PlayerInputComponent->BindAxis("Look Up / Down",this,&ABlasterCharacter::LookUp);
 	PlayerInputComponent->BindAxis("Move Forward / Backward",this,&ABlasterCharacter::MoveForward);
@@ -404,6 +405,12 @@ void ABlasterCharacter::ReloadButtonPressed()
 	CombatComponent->Reload();
 }
 
+void ABlasterCharacter::GrenadeButtonPressed()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+	CombatComponent->ThrowGrenade();
+}
+
 void ABlasterCharacter::HideCharacterWhenCameraClose()
 {
 	if (!IsLocallyControlled() || FollowCamera == nullptr) return;
@@ -502,6 +509,17 @@ void ABlasterCharacter::PlayReloadMontage()
 			break;
 		}
 		AnimInstance->Montage_JumpToSection(SlotName);
+	}
+}
+
+void ABlasterCharacter::PlayGrenadeMontage()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(GrenadeTossMontage);
 	}
 }
 

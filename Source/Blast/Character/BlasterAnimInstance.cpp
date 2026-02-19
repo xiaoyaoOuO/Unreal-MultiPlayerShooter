@@ -30,7 +30,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bAiming = BlasterCharacter->IsAiming();
 	TurningInPlace = BlasterCharacter->Get_TurningInPlace();
 	bElimmed = BlasterCharacter->ShouldElim();
-	bUseFABRIK = BlasterCharacter->Get_CombatState() != ECombatState::ECS_Reloading;
+	bUseFABRIK = BlasterCharacter->Get_CombatState() == ECombatState::ECS_Unoccupied;
 	bUseAimOffsets = bUseFABRIK;
 	bUseRightHandTransform = bUseFABRIK;
 

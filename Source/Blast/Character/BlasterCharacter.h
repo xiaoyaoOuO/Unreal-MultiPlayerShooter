@@ -28,6 +28,7 @@ public:
 	void PlayHitReactMontage();
 	void PlayElimMontage();
 	void PlayReloadMontage();
+	void PlayGrenadeMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere , Category= Camera)
@@ -126,6 +127,9 @@ private:
 	UPROPERTY(EditAnywhere,Category=Combat)
 	UAnimMontage* ReloadMontage;
 
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* GrenadeTossMontage;
+
 
 	/*
 	 * 角色死亡时消融特效
@@ -168,6 +172,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void ReloadButtonPressed();
+	void GrenadeButtonPressed();
 	
 	void TurnInPlace(float DeltaTime);
 	void Calculate_AO_Pitch();

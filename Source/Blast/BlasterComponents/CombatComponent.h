@@ -20,12 +20,14 @@ public:
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	void AttachWeaponToRightHand(AWeapon* Weapon);
 	friend class ABlasterCharacter;
 	void EquipWeapon(AWeapon* Weapon);
 	void SetAiming(bool bIsAiming);
 	void Fire();
 	void FireButtonPressed(bool bPressed);
 	void Reload();
+	void ThrowGrenade();
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetAiming(bool bIsAiming);
@@ -38,6 +40,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
+
+	UFUNCTION(Server, Reliable)
+	void Server_GrenadeToss();
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
@@ -52,6 +57,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnAddShotgunAmmo();
+
+	UFUNCTION(BlueprintCallable)
+	void OnGrenadeTossFinished();
 	
 	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:
@@ -71,6 +79,8 @@ protected:
 	int32 AmountToReload(const EWeaponType& WeaponType) const;
 
 	void UpdateWeaponAmmo();
+
+	void PutWeaponToBack();
 
 public:
 	class ABlasterCharacter* Character;

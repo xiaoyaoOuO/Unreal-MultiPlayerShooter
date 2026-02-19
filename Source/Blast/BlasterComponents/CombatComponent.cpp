@@ -49,6 +49,16 @@ void UCombatComponent::ServerReload_Implementation()
 	HandleReload();
 }
 
+void UCombatComponent::Server_GrenadeToss_Implementation()
+{
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Character)
+	{
+		Character->PlayGrenadeMontage();
+		PutWeaponToBack();
+	}
+}
+
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
 	FVector2D ViewPortSize = FVector2D::ZeroVector;
@@ -238,6 +248,12 @@ void UCombatComponent::OnAddShotgunAmmo()
 	}
 }
 
+void UCombatComponent::OnGrenadeTossFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	AttachWeaponToRightHand(EquippedWeapon);
+}
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -341,6 +357,15 @@ void UCombatComponent::UpdateWeaponAmmo()
 	}
 }
 
+void UCombatComponent::PutWeaponToBack()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("Back"))
+	{
+		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+	}
+}
+
 void UCombatComponent::StartFireDelay()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
@@ -402,9 +427,19 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME_CONDITION(UCombatComponent,CarriedAmmoAmount,COND_OwnerOnly);
 }
 
+void UCombatComponent::AttachWeaponToRightHand(AWeapon* Weapon)
+{
+	if (Weapon == nullptr || Character == nullptr) return;
+	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket"))
+	{
+		HandSocket->AttachActor(Weapon, Character->GetMesh());
+	}
+}
+
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 {
 	if (Character == nullptr || Weapon ==nullptr) return;
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
 	if (EquippedWeapon)
 	{
@@ -413,10 +448,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 
 	EquippedWeapon = Weapon;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket"))
-	{
-		HandSocket->AttachActor(Weapon, Character->GetMesh());
-	}
+	AttachWeaponToRightHand(Weapon);
 	Weapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 	Character->bUseControllerRotationYaw = true;
@@ -484,9 +516,24 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmoAmount > 0 && CombatState != ECombatState::ECS_Reloading && EquippedWeapon !=nullptr && EquippedWeapon->Get_AmmoAmount() < EquippedWeapon->Get_MagCapacity())
+	if (CarriedAmmoAmount > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon !=nullptr && EquippedWeapon->Get_AmmoAmount() < EquippedWeapon->Get_MagCapacity())
 	{
 		ServerReload();
+	}
+}
+
+void UCombatComponent::ThrowGrenade()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Character)
+	{
+		Character->PlayGrenadeMontage();
+		PutWeaponToBack();
+		if (!Character->HasAuthority())
+		{
+			Server_GrenadeToss();
+		}
 	}
 }
 
@@ -512,6 +559,14 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Fire();
 		}
+		break;
+	case ECombatState::ECS_ThrowingGrenade:
+		if (Character && !Character->IsLocallyControlled())
+		{
+			Character->PlayGrenadeMontage();
+			PutWeaponToBack();
+		}
+		break;
 	default:
 		break;
 	}
