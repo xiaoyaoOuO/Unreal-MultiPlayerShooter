@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* CountDownText;
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* GrenadeAmountText;
 };

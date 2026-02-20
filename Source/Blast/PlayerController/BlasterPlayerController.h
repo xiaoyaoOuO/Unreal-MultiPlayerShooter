@@ -15,6 +15,7 @@ enum EHUDType
 	EHT_CountDownTimer, //比赛时的倒计时
 	EHT_WarmUpTimer,	//比赛开始前的热身倒计时
 	EHT_CoolDown,		//比赛结束后倒计时一段时间再重开比赛
+	EHT_GrenadeAmount,  //玩家携带的手雷数量
 	EHT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
@@ -23,6 +24,7 @@ struct FHUDData
 {
 	GENERATED_BODY()
 	int32 CarriedAmmo;
+	int32 GrenadeAmount;
 	float CountDownTime;
 };
 

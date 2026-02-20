@@ -52,6 +52,7 @@ void UCombatComponent::ServerReload_Implementation()
 
 void UCombatComponent::Server_GrenadeToss_Implementation()
 {
+	if (CarriedGrenadeAmount <= 0) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Character)
 	{
@@ -78,6 +79,7 @@ void UCombatComponent::Server_SpawnGrenade_Implementation(const FVector_NetQuant
 			ToTarget.Rotation(),
 			SpawnParameters
 		);
+		CarriedGrenadeAmount = FMath::Clamp(CarriedGrenadeAmount - 1, 0, InitialCarried_ThrownGrenade);
 	}
 }
 
@@ -284,6 +286,11 @@ void UCombatComponent::OnGrenadeLaunch()
 		if (Character->IsLocallyControlled())
 		{
 			Server_SpawnGrenade(HitTargetPoint);
+			if (!Character->HasAuthority())
+			{
+				CarriedGrenadeAmount = FMath::Clamp(CarriedGrenadeAmount - 1, 0, InitialCarried_ThrownGrenade);
+				UpdateGrenadeHUD();
+			}
 		}
 	}
 }
@@ -302,6 +309,7 @@ void UCombatComponent::BeginPlay()
 	{
 		InitializeCarriedAmmo();
 	}
+	CarriedGrenadeAmount = InitialCarried_ThrownGrenade;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -558,7 +566,7 @@ void UCombatComponent::Reload()
 
 void UCombatComponent::ThrowGrenade()
 {
-	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	if (CombatState != ECombatState::ECS_Unoccupied || CarriedGrenadeAmount <= 0) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Character)
 	{
@@ -606,4 +614,20 @@ void UCombatComponent::OnRep_CombatState()
 	default:
 		break;
 	}
+}
+
+void UCombatComponent::UpdateGrenadeHUD()
+{
+	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		FHUDData HUDData;
+		HUDData.GrenadeAmount = CarriedGrenadeAmount;
+		Controller->SetBlasterPlayerHUDData(EHT_GrenadeAmount, HUDData);
+	}
+}
+
+void UCombatComponent::OnRep_GrenadeAmount()
+{
+	UpdateGrenadeHUD();
 }

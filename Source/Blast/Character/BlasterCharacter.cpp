@@ -549,6 +549,10 @@ void ABlasterCharacter::PollInit()
 			BlasterPlayerState->AddPlayerDefeat(0);
 		}
 	}
+	if (CombatComponent)
+	{
+		CombatComponent->UpdateGrenadeHUD();
+	}
 }
 
 void ABlasterCharacter::JumpToShotgunEnd()

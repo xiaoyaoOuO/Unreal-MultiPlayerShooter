@@ -56,6 +56,8 @@ public:
 
 	void HandleReload();
 
+	void UpdateGrenadeHUD();
+
 	UFUNCTION(BlueprintCallable)
 	void OnReloadComplete();
 
@@ -80,6 +82,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_CombatState();
+	
+	UFUNCTION()
+	void OnRep_GrenadeAmount();
 
 	void InitializeCarriedAmmo();
 	
@@ -139,21 +144,26 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
 	int32 CarriedAmmoAmount;
 
+	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
+	int32 CarriedGrenadeAmount;
+
 	//初始携带弹药
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_AR_Ammo;
+	int32 InitialCarried_AR_Ammo;				//步枪
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_Rocket_Ammo;
+	int32 InitialCarried_Rocket_Ammo;			//火箭筒
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_Pistol_Ammo;
+	int32 InitialCarried_Pistol_Ammo;			//手枪
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_SMG_Ammo;
+	int32 InitialCarried_SMG_Ammo;				//冲锋枪
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_Shotgun_Ammo;
+	int32 InitialCarried_Shotgun_Ammo;			//霰弹枪
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_Sniper_Ammo;
+	int32 InitialCarried_Sniper_Ammo;			//狙击步枪
 	UPROPERTY(EditAnywhere,Category="Combat")
-	int32 InitialCarried_GrenadeLauncher_Ammo;
+	int32 InitialCarried_GrenadeLauncher_Ammo;	//榴弹发射器
+	UPROPERTY(EditAnywhere,Category="Combat")
+	int32 InitialCarried_ThrownGrenade;			//手雷
 	TMap<EWeaponType,int32> CarriedAmmoMap;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CombatState)

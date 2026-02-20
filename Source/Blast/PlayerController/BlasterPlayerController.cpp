@@ -267,6 +267,14 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 			}
 			CharacterOverlay->CountDownText->SetText(FText::FromString(CountDownTimeString));
 		}
+		break;
+	case EHT_GrenadeAmount:
+		if (CharacterOverlay->GrenadeAmountText)
+		{
+			FString CarriedGrenadeAmountString = FString::Printf(TEXT("%d"), Data.GrenadeAmount);
+			CharacterOverlay->GrenadeAmountText->SetText(FText::FromString(CarriedGrenadeAmountString));
+		}
+		break;
 	default:
 		break;
 	}
