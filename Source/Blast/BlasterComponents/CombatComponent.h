@@ -29,6 +29,7 @@ public:
 	void FireButtonPressed(bool bPressed);
 	void Reload();
 	void ThrowGrenade();
+	void PickUpAmmo(EWeaponType WeaponType,int32 AmmoAmount);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetAiming(bool bIsAiming);
@@ -60,6 +61,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnReloadComplete();
+	void UpdateCarriedAmmoHUD();
 
 	UFUNCTION(BlueprintCallable)
 	void OnAddShotgunAmmo();

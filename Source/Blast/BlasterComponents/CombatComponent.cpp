@@ -239,6 +239,17 @@ void UCombatComponent::OnReloadComplete()
 	}
 }
 
+void UCombatComponent::UpdateCarriedAmmoHUD()
+{
+	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		FHUDData HUDData;
+		HUDData.CarriedAmmo = CarriedAmmoAmount;
+		Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
+	}
+}
+
 //动画添加一次子弹，就通知一次该函数
 void UCombatComponent::OnAddShotgunAmmo()
 {
@@ -262,13 +273,7 @@ void UCombatComponent::OnAddShotgunAmmo()
 		//更新携带弹药量
 		CarriedAmmoMap[EquippedWeaponType] -= AmmoToAdd;
 		this->CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			FHUDData HUDData;
-			HUDData.CarriedAmmo = CarriedAmmoAmount;
-			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
-		}
+		UpdateCarriedAmmoHUD();
 	}
 }
 
@@ -346,13 +351,7 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 		{
 			Character->JumpToShotgunEnd();
 		}
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			FHUDData HUDData;
-			HUDData.CarriedAmmo = CarriedAmmoAmount;
-			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
-		}
+		UpdateCarriedAmmoHUD();
 	}
 }
 
@@ -389,13 +388,7 @@ void UCombatComponent::UpdateWeaponAmmo()
 		//更新携带弹药量
 		CarriedAmmoMap[EquippedWeaponType] -= AmmoToAdd;
 		this->CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
-		Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			FHUDData HUDData;
-			HUDData.CarriedAmmo = CarriedAmmoAmount;
-			Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
-		}
+		UpdateCarriedAmmoHUD();
 	}
 }
 
@@ -500,13 +493,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 	{
 		CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
 	}
-	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-	if (Controller)
-	{
-		FHUDData HUDData;
-		HUDData.CarriedAmmo = CarriedAmmoAmount;
-		Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
-	}
+	UpdateCarriedAmmoHUD();
 	if (EquippedWeapon->EquippedSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(
@@ -577,6 +564,23 @@ void UCombatComponent::ThrowGrenade()
 		{
 			Server_GrenadeToss();
 		}
+	}
+}
+
+void UCombatComponent::PickUpAmmo(EWeaponType WeaponType, int32 AmmoAmount)
+{
+	if (CarriedAmmoMap.Contains(WeaponType))
+	{
+		CarriedAmmoMap[WeaponType] += AmmoAmount;
+		if (EquippedWeapon && EquippedWeapon->Get_WeaponType() == WeaponType)
+		{
+			CarriedAmmoAmount = CarriedAmmoMap[WeaponType];
+			UpdateCarriedAmmoHUD();
+		}
+	}
+	else
+	{
+		CarriedAmmoMap.Emplace(WeaponType, AmmoAmount);
 	}
 }
 

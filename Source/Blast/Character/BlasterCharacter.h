@@ -226,4 +226,5 @@ public:
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const {return GrenadeMesh;}
+	FORCEINLINE UCombatComponent* GetCombatComponent() const {return CombatComponent;}
 };
