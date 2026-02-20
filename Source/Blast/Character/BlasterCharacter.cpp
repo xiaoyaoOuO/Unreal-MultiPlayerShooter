@@ -3,6 +3,7 @@
 
 #include "BlasterCharacter.h"
 #include "Blast/Blast.h"
+#include "Blast/BlasterComponents/BuffComponent.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
@@ -43,6 +44,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	CombatComponent->SetIsReplicated(true);
+
+	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
+	BuffComponent->SetIsReplicated(true);
 
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
@@ -183,6 +187,10 @@ void ABlasterCharacter::PostInitializeComponents()
 	if (CombatComponent)
 	{
 		CombatComponent->Character = this;
+	}
+	if (BuffComponent)
+	{
+		BuffComponent->Character = this;
 	}
 }
 
@@ -325,10 +333,13 @@ float ABlasterCharacter::Calculate_Speed()
 	return Velocity.Size();
 }
 
-void ABlasterCharacter::OnRep_CurrentHealth()
+void ABlasterCharacter::OnRep_CurrentHealth(float LastHealth)
 {
 	UpdateHealthHUD();
-	PlayHitReactMontage();
+	if (LastHealth > CurrentHealth)
+	{
+		PlayHitReactMontage();
+	}
 	if (CurrentHealth <= 0.f)
 	{
 		Elim();

@@ -46,6 +46,9 @@ private:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UCombatComponent* CombatComponent;
 
+	UPROPERTY(EditAnywhere)
+	class UBuffComponent* BuffComponent;
+
 	UPROPERTY(VisibleAnywhere)
 	class ABlasterPlayerController* BlasterPlayerController;
 
@@ -188,7 +191,7 @@ protected:
 	float Calculate_Speed();
 
 	UFUNCTION()
-	void OnRep_CurrentHealth();
+	void OnRep_CurrentHealth(float LastHealth);
 
 	UFUNCTION()
     /*即 void(ABlasterCharacter::*)(AActor*,
@@ -223,8 +226,10 @@ public:
 	FORCEINLINE bool  ShouldElim() const {return bShouldElim;}
 	FORCEINLINE float Get_CurrentHealth() const {return CurrentHealth;}
 	FORCEINLINE float Get_MaxHealth() const {return MaxHealth;}
+	FORCEINLINE void Set_CurrentHealth(float Health) {CurrentHealth = Health;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const {return GrenadeMesh;}
 	FORCEINLINE UCombatComponent* GetCombatComponent() const {return CombatComponent;}
+	FORCEINLINE UBuffComponent* GetBuffComponent() const {return BuffComponent;}
 };
