@@ -28,6 +28,9 @@ APickUp::APickUp()
 	
 	PickUpMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	PickUpMesh->SetRenderCustomDepth(true);
+
+	PickUpNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HealthComponent"));
+	PickUpNiagaraComponent->SetupAttachment(RootComponent);
 }
 
 void APickUp::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -61,6 +64,16 @@ void APickUp::Destroyed()
 	if (PickUpSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(),PickUpSound,GetActorLocation());
+	}
+
+	if (PickUpEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			this,
+			PickUpEffect,
+			GetActorLocation(),
+			GetActorRotation()
+		);
 	}
 }
 

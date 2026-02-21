@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NiagaraSystem.h"
 #include "PickUp.h"
-#include "HealthPickUp.generated.h"
+#include "SpeedPickUp.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BLAST_API AHealthPickUp : public APickUp
+class BLAST_API ASpeedPickUp : public APickUp
 {
 	GENERATED_BODY()
 
@@ -19,13 +18,13 @@ public:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 
-protected:
-	virtual void Destroyed() override;
-
 private:
 	UPROPERTY(EditAnywhere)
-	int32 HealAmount = 100;
-	
+	float BuffWalkSpeed = 1200.f;
+
 	UPROPERTY(EditAnywhere)
-	float HealTime = 5.f;
+	float BuffCrouchWalkSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere)
+	float BuffTime = 5.f;
 };

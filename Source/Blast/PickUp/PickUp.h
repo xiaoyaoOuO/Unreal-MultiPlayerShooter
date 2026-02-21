@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "PickUp.generated.h"
 
 UCLASS()
@@ -40,4 +42,11 @@ private:
 
 	UPROPERTY(EditAnywhere,Category="PickUp")
 	USoundCue* PickUpSound;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* PickUpEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	UNiagaraComponent* PickUpNiagaraComponent;
 };

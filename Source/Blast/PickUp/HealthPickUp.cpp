@@ -8,11 +8,6 @@
 #include "Blast/BlasterComponents/CombatComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-AHealthPickUp::AHealthPickUp()
-{
-	HealthComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HealthComponent"));
-	HealthComponent->SetupAttachment(RootComponent);
-}
 
 void AHealthPickUp::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -29,14 +24,5 @@ void AHealthPickUp::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AA
 
 void AHealthPickUp::Destroyed()
 {
-	if (HealEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			this,
-			HealEffect,
-			GetActorLocation(),
-			GetActorRotation()
-		);
-	}
 	Super::Destroyed();
 }
