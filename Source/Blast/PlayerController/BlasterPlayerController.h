@@ -16,6 +16,7 @@ enum EHUDType
 	EHT_WarmUpTimer,	//比赛开始前的热身倒计时
 	EHT_CoolDown,		//比赛结束后倒计时一段时间再重开比赛
 	EHT_GrenadeAmount,  //玩家携带的手雷数量
+	EHT_ShieldBar,      //玩家的护盾值
 	EHT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
@@ -25,6 +26,8 @@ struct FHUDData
 	GENERATED_BODY()
 	int32 CarriedAmmo;
 	int32 GrenadeAmount;
+	int8 CurrentShield;
+	int8 CurrentMaxShield;
 	float CountDownTime;
 };
 
@@ -69,6 +72,7 @@ class BLAST_API ABlasterPlayerController : public APlayerController
 	GENERATED_BODY()
 
 private:
+	UPROPERTY()
 	ABlasterHUD* BlasterHUD;
 
 	/*
@@ -125,4 +129,5 @@ public:
 	void OnMatchStateSet(FName State);
 	void InitHUD();
 	void DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data);
+	void UpdateCharacterShield(float CurrentShield, float MaxShield);
 };

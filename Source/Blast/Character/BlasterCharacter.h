@@ -114,6 +114,12 @@ private:
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentHealth,VisibleAnywhere,Category= "Character Stats")
 	float CurrentHealth;
+
+	UPROPERTY(EditAnywhere,Category= "Character Stats")
+	int8 MaxShield = 50;
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentShield,VisibleAnywhere,Category= "Character Stats")
+	int8 CurrentShield;
 	
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
@@ -194,6 +200,9 @@ protected:
 	void OnRep_CurrentHealth(float LastHealth);
 
 	UFUNCTION()
+	void OnRep_CurrentShield();
+
+	UFUNCTION()
     /*即 void(ABlasterCharacter::*)(AActor*,
      *float,
      *const UDamageType*,
@@ -208,6 +217,7 @@ public:
 	bool IsAiming();
 	void Elim();
 	void UpdateHealthHUD();
+	void UpdateShieldHUD();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
 	void JumpToShotgunEnd();  //按个数添加散弹枪子弹，当满子弹后就跳跃至End
 	void SetGrenadeVisibility(bool bVisible);

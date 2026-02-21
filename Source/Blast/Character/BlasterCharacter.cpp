@@ -99,6 +99,15 @@ void ABlasterCharacter::UpdateHealthHUD()
 	}
 }
 
+void ABlasterCharacter::UpdateShieldHUD()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->UpdateCharacterShield(CurrentShield,MaxShield);
+	}
+}
+
 void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
 {
 	if (DissolveMaterialInstanceDynamic)
@@ -122,6 +131,8 @@ void ABlasterCharacter::BeginPlay()
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
 	UpdateHealthHUD();
+	CurrentShield = MaxShield / 2;
+	UpdateShieldHUD();
 	SetGrenadeVisibility(false);
 	if (HasAuthority())
 	{
@@ -349,6 +360,11 @@ void ABlasterCharacter::OnRep_CurrentHealth(float LastHealth)
 	{
 		Elim();
 	}
+}
+
+void ABlasterCharacter::OnRep_CurrentShield()
+{
+	UpdateShieldHUD();
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,

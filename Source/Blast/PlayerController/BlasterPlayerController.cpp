@@ -188,6 +188,12 @@ void ABlasterPlayerController::SetBlasterPlayerHealth(float Health, float MaxHea
 		UCharacterOverlay* CharacterOverlay = BlasterHUD->GetCharacterOverlay();
 		if (CharacterOverlay && CharacterOverlay->HealthBar && CharacterOverlay->HealthText)
 		{
+			if (MaxHealth <= 0)
+			{
+				CharacterOverlay->HealthBar->SetPercent(0.f);
+				CharacterOverlay->HealthText->SetText(FText::FromString(TEXT("0/0")));
+				return;
+			}
 			float HealthPercent = Health / MaxHealth;
 			CharacterOverlay->HealthBar->SetPercent(HealthPercent);
 			FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
@@ -275,6 +281,22 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 			CharacterOverlay->GrenadeAmountText->SetText(FText::FromString(CarriedGrenadeAmountString));
 		}
 		break;
+	case EHT_ShieldBar:
+		if (CharacterOverlay->ShieldBar && CharacterOverlay->ShieldText)
+		{
+			if (Data.CurrentMaxShield <= 0)
+			{
+				CharacterOverlay->ShieldBar->SetPercent(0.f);
+				CharacterOverlay->ShieldText->SetText(FText::FromString(TEXT("0/0")));
+				return;
+			}
+			float ShieldPercent = static_cast<float>(Data.CurrentShield) / static_cast<float>(Data.CurrentMaxShield);
+			UE_LOG(LogTemp,Warning,TEXT("Shield Percent = %f"), ShieldPercent);
+			CharacterOverlay->ShieldBar->SetPercent(ShieldPercent);
+			FString ShieldText = FString::Printf(TEXT("%d/%d"), Data.CurrentShield, Data.CurrentMaxShield);
+			CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldText));
+		}
+		break;
 	default:
 		break;
 	}
@@ -352,6 +374,7 @@ void ABlasterPlayerController::InitHUD()
 	if (BlasterCharacter)
 	{
 		BlasterCharacter->UpdateHealthHUD();
+		BlasterCharacter->UpdateShieldHUD();
 		BlasterCharacter->PollInit();
 	}
 }
@@ -401,6 +424,14 @@ void ABlasterPlayerController::DrawCoolDownHUD(const UAnnouncement* Announcement
 			Announcement->InfoText->SetText(InfoText);
 		}
 	}
+}
+
+void ABlasterPlayerController::UpdateCharacterShield(float CurrentShield, float MaxShield)
+{
+	FHUDData HUDData;
+	HUDData.CurrentShield = CurrentShield;
+	HUDData.CurrentMaxShield = MaxShield;
+	SetBlasterPlayerHUDData(EHT_ShieldBar,HUDData);
 }
 
 void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
