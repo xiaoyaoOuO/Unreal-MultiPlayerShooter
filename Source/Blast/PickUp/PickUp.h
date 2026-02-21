@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Blast/Character/BlasterCharacter.h"
+#include "Blast/BlasterComponents/BuffComponent.h"
 #include "PickUp.generated.h"
 
 UCLASS()

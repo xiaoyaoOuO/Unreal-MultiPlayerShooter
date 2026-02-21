@@ -17,7 +17,7 @@ class BLAST_API ASpeedPickUp : public APickUp
 public:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-
+	virtual void Destroyed() override;
 private:
 	UPROPERTY(EditAnywhere)
 	float BuffWalkSpeed = 1200.f;

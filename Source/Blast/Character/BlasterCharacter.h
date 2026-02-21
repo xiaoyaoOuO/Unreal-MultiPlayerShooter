@@ -46,7 +46,7 @@ private:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UCombatComponent* CombatComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UBuffComponent* BuffComponent;
 
 	UPROPERTY(VisibleAnywhere)

@@ -18,3 +18,8 @@ void AAmmoPickUp::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 		}
 	}
 }
+
+void AAmmoPickUp::Destroyed()
+{
+	Super::Destroyed();
+}

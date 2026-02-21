@@ -4,27 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "PickUp.h"
-#include "Blast/Weapon/WeaponType.h"
-#include "AmmoPickUp.generated.h"
+#include "JumpPickUp.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BLAST_API AAmmoPickUp : public APickUp
+class BLAST_API AJumpPickUp : public APickUp
 {
 	GENERATED_BODY()
-
 public:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 	virtual void Destroyed() override;
-
-
 private:
-	UPROPERTY(EditAnywhere, Category="PickUp")
-	EWeaponType AmmoType;
+	UPROPERTY(EditAnywhere)
+	float BuffJumpZVelocity = 1000.f;
 
-	UPROPERTY(EditAnywhere,Category="PickUp")
-	int32 AmmoAmount;
+	UPROPERTY(EditAnywhere)
+	float BuffTime = 10.f;
+	
 };

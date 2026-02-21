@@ -18,3 +18,8 @@ void ASpeedPickUp::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		}
 	}
 }
+
+void ASpeedPickUp::Destroyed()
+{
+	Super::Destroyed();
+}
