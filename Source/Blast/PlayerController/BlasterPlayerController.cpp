@@ -3,6 +3,7 @@
 
 #include "BlasterPlayerController.h"
 
+#include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/GameState/BlasterGameState.h"
@@ -120,6 +121,8 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	SyncServerTime(DeltaSeconds);
 	
 	UpdateTimeHUD();
+
+	PollInit();
 }
 
 void ABlasterPlayerController::ReceivedPlayer()
@@ -258,6 +261,7 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 		{
 			FString CarriedAmmoAmountString = FString::Printf(TEXT("%d"), Data.CarriedAmmo);
 			CharacterOverlay->CarriedAmmoAmountText->SetText(FText::FromString(CarriedAmmoAmountString));
+			bHasInitAmmo = true;
 		}
 		break;
 	case EHT_CountDownTimer:
@@ -279,11 +283,13 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 		{
 			FString CarriedGrenadeAmountString = FString::Printf(TEXT("%d"), Data.GrenadeAmount);
 			CharacterOverlay->GrenadeAmountText->SetText(FText::FromString(CarriedGrenadeAmountString));
+			bHasInitGrenade = true;
 		}
 		break;
 	case EHT_ShieldBar:
 		if (CharacterOverlay->ShieldBar && CharacterOverlay->ShieldText)
 		{
+			bHasInitShield = true;
 			if (Data.CurrentMaxShield <= 0)
 			{
 				CharacterOverlay->ShieldBar->SetPercent(0.f);
@@ -432,6 +438,37 @@ void ABlasterPlayerController::UpdateCharacterShield(float CurrentShield, float 
 	HUDData.CurrentShield = CurrentShield;
 	HUDData.CurrentMaxShield = MaxShield;
 	SetBlasterPlayerHUDData(EHT_ShieldBar,HUDData);
+}
+
+void ABlasterPlayerController::PollInit()
+{
+	if (!bHasInitAmmo)
+	{
+		if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetCharacter()))
+		{
+			if (UCombatComponent* CombatComponent = BlasterCharacter->GetCombatComponent())
+			{
+				CombatComponent->UpdateCarriedAmmoHUD();
+			}
+		}
+	}
+	if (!bHasInitGrenade)
+	{
+		if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetCharacter()))
+		{
+			if (UCombatComponent* CombatComponent = BlasterCharacter->GetCombatComponent())
+			{
+				CombatComponent->UpdateGrenadeHUD();
+			}
+		}
+	}
+	if (!bHasInitShield)
+	{
+		if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetCharacter()))
+		{
+			BlasterCharacter->UpdateShieldHUD();
+		}
+	}
 }
 
 void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

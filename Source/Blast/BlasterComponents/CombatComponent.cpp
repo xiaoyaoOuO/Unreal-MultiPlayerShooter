@@ -80,6 +80,7 @@ void UCombatComponent::Server_SpawnGrenade_Implementation(const FVector_NetQuant
 			SpawnParameters
 		);
 		CarriedGrenadeAmount = FMath::Clamp(CarriedGrenadeAmount - 1, 0, InitialCarried_ThrownGrenade);
+		UpdateGrenadeHUD();
 	}
 }
 
@@ -241,6 +242,7 @@ void UCombatComponent::OnReloadComplete()
 
 void UCombatComponent::UpdateCarriedAmmoHUD()
 {
+	if (Character == nullptr || Character->Controller == nullptr) return;
 	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 	if (Controller)
 	{
@@ -315,6 +317,11 @@ void UCombatComponent::BeginPlay()
 		InitializeCarriedAmmo();
 	}
 	CarriedGrenadeAmount = InitialCarried_ThrownGrenade;
+	UpdateGrenadeHUD();
+	if (Character)
+	{
+		Character->InitialWeapon();
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -352,6 +359,7 @@ void UCombatComponent::OnRep_CarriedAmmoAmount()
 			Character->JumpToShotgunEnd();
 		}
 		UpdateCarriedAmmoHUD();
+		UE_LOG(LogTemp, Warning, TEXT("CarriedAmmoAmount updated on client: %d"), CarriedAmmoAmount);
 	}
 }
 
@@ -622,6 +630,7 @@ void UCombatComponent::OnRep_CombatState()
 
 void UCombatComponent::UpdateGrenadeHUD()
 {
+	if (Character == nullptr || Character->Controller == nullptr) return;
 	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
 	if (Controller)
 	{

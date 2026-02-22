@@ -404,6 +404,27 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	}
 }
 
+void ABlasterCharacter::InitialWeapon()
+{
+	if (DefaultWeaponClass)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (!World->GetAuthGameMode() || bShouldElim) return;
+			AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
+			if (StartingWeapon && CombatComponent)
+			{
+				StartingWeapon->bShouldDestroy = true;
+				CombatComponent->EquipWeapon(StartingWeapon);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn default weapon."));
+			}
+		}
+	}
+}
+
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (!CombatComponent || CombatComponent->EquippedWeapon == nullptr) return;
@@ -595,10 +616,6 @@ void ABlasterCharacter::PollInit()
 			BlasterPlayerState->AddPlayerDefeat(0);
 		}
 	}
-	if (CombatComponent)
-	{
-		CombatComponent->UpdateGrenadeHUD();
-	}
 }
 
 void ABlasterCharacter::JumpToShotgunEnd()
@@ -628,7 +645,14 @@ void ABlasterCharacter::Elim()
 	//掉落武器
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
-		CombatComponent->EquippedWeapon->Dropped();
+		if (CombatComponent->EquippedWeapon->bShouldDestroy)
+		{
+			CombatComponent->EquippedWeapon->Destroy();
+		}
+		else
+		{
+			CombatComponent->EquippedWeapon->Dropped();
+		}
 		// Clear the reference so Destroyed() won't delete the dropped weapon.
 		CombatComponent->EquippedWeapon = nullptr;
 	}

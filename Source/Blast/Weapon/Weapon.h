@@ -152,6 +152,10 @@ public:
 	UPROPERTY(EditAnywhere,Category="Weapon")
 	bool bAutomaticFire = true;
 
+
+	//初始武器需要在角色死亡时销毁
+	bool bShouldDestroy = false;
+
 private:
 	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_AmmoAmount,Category="Weapon")
 	int32 AmmoAmount;

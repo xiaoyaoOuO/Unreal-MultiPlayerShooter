@@ -146,7 +146,7 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
 	int32 CarriedAmmoAmount;
 
-	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmoAmount)
+	UPROPERTY(ReplicatedUsing=OnRep_GrenadeAmount)
 	int32 CarriedGrenadeAmount;
 
 	//初始携带弹药

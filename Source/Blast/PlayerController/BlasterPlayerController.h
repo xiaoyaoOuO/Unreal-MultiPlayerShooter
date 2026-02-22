@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blast/Character/BlasterCharacter.h"
 #include "Blast/HUD/BlasterHUD.h"
 #include "GameFramework/GameMode.h"
 #include "GameFramework/PlayerController.h"
@@ -74,7 +75,7 @@ class BLAST_API ABlasterPlayerController : public APlayerController
 private:
 	UPROPERTY()
 	ABlasterHUD* BlasterHUD;
-
+	
 	/*
 	 * 计时
 	 */
@@ -86,6 +87,12 @@ private:
 	float SyncTimeFrequency = 5.f;
 	float SyncTimeTimer;  //用于计时，到达frequency就进行一次同步
 	double ServerClientDelta = 0.f;
+
+
+	//初始化HUD
+	bool bHasInitGrenade;
+	bool bHasInitShield;
+	bool bHasInitAmmo;
 
 	/*
 	 * GameModeState
@@ -130,4 +137,5 @@ public:
 	void InitHUD();
 	void DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data);
 	void UpdateCharacterShield(float CurrentShield, float MaxShield);
+	void PollInit();
 };
