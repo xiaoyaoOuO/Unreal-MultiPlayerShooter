@@ -74,6 +74,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnGrenadeLaunch();
+
+	bool CanSwapWeapon();
+
+	void SwapWeapon();
 	
 	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:

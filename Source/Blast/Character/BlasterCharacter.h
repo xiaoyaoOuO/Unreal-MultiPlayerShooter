@@ -60,6 +60,9 @@ private:
 
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server,Reliable)
+	void ServerSwapWeaponButtonPressed();
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
@@ -188,6 +191,7 @@ protected:
 	void FireButtonReleased();
 	void ReloadButtonPressed();
 	void GrenadeButtonPressed();
+	void SwapWeaponButtonPressed();
 	
 	void TurnInPlace(float DeltaTime);
 	void Calculate_AO_Pitch();

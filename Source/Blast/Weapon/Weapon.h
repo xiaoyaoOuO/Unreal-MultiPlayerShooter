@@ -74,6 +74,10 @@ public:
 	FORCEINLINE bool IsFull(){return AmmoAmount == MagCapacity;}
 
 	void ShowPickUpWidget(bool bShowPickupWidget) const;
+	void OnDropped();
+	void OnEquipped();
+	void OnSecondary();
+	void OnStateSet();
 
 	void SetWeaponState(EWeaponState State);
 

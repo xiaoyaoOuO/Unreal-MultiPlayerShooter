@@ -302,6 +302,61 @@ void UCombatComponent::OnGrenadeLaunch()
 	}
 }
 
+bool UCombatComponent::CanSwapWeapon()
+{
+	return EquippedWeapon && SecondaryWeapon;
+}
+
+void UCombatComponent::SwapWeapon()
+{
+	AWeapon* TempWeapon = EquippedWeapon;
+	EquippedWeapon = SecondaryWeapon;
+	SecondaryWeapon = TempWeapon;
+
+
+	/*
+	 * 处理主武器
+	 */
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachWeaponToRightHand(EquippedWeapon);
+	EquippedWeapon->SetOwner(Character);
+	//更新携带弹药量
+	EWeaponType EquippedWeaponType = EquippedWeapon->Get_WeaponType();
+	if (CarriedAmmoMap.Contains(EquippedWeaponType))
+	{
+		CarriedAmmoAmount = CarriedAmmoMap[EquippedWeaponType];
+	}
+	UpdateCarriedAmmoHUD();
+	if (EquippedWeapon->EquippedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			EquippedWeapon->EquippedSound,
+			Character->GetActorLocation()
+		);
+	}
+	if (EquippedWeapon->Get_AmmoAmount()<=0 && CarriedAmmoAmount > 0)
+	{
+		Reload();
+	}
+	EquippedWeapon->UpdateAmmoAmountHUD();
+
+	/*
+	 * 处理副武器
+	 */
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Secondary);
+	AttachWeaponToBackBag(SecondaryWeapon);
+	SecondaryWeapon->SetOwner(Character);
+	if (SecondaryWeapon->EquippedSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			SecondaryWeapon->EquippedSound,
+			Character->GetActorLocation()
+		);
+	}
+}
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -333,7 +388,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		AttachWeaponToRightHand(EquippedWeapon);
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 		Character->bUseControllerRotationYaw = true;
-		// EquippedWeapon->UpdateAmmoAmountHUD();
+		EquippedWeapon->UpdateAmmoAmountHUD();
 		//拾取音效
 		if (EquippedWeapon->EquippedSound)
 		{

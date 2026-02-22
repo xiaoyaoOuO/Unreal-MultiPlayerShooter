@@ -154,51 +154,73 @@ void AWeapon::ShowPickUpWidget(const bool bShowPickupWidget) const
 	}
 }
 
+void AWeapon::OnDropped()
+{
+	//客户端和服务器都执行，需要判断authority
+	if (HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+	}
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	WeaponMesh->SetSimulatePhysics(true);
+	WeaponMesh->SetEnableGravity(true);
+	BlasterPlayerController = nullptr;
+	BlasterPlayerCharacter = nullptr;
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
+	WeaponMesh->MarkRenderStateDirty();
+	SetDepthRender(true);
+}
+
+void AWeapon::OnSecondary()
+{
+	ShowPickUpWidget(false);
+	if (HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+	SetDepthRender(true);
+}
+
+void AWeapon::OnEquipped()
+{
+	//在服务器执行，所以不用判断authority
+	ShowPickUpWidget(false);
+	if (HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	SetDepthRender(false);
+}
+
+void AWeapon::OnStateSet()
+{
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Secondary:
+		OnSecondary();
+		break;
+	case EWeaponState::EWS_Equipped:
+		OnEquipped();
+		break;
+	case EWeaponState::EWS_Dropped:
+		OnDropped();
+		break;
+	default:
+		break;
+	}
+}
+
 void AWeapon::SetWeaponState(const EWeaponState State)
 {
 	WeaponState = State;
-	switch (WeaponState)
-	{
-		case EWeaponState::EWS_Secondary:
-			ShowPickUpWidget(false);
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			WeaponMesh->SetEnableGravity(false);
-			WeaponMesh->SetSimulatePhysics(false);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
-			SetDepthRender(true);
-				break;
-		case EWeaponState::EWS_Equipped:
-		{
-			//在服务器执行，所以不用判断authority
-			ShowPickUpWidget(false);
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			WeaponMesh->SetEnableGravity(false);
-			WeaponMesh->SetSimulatePhysics(false);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			SetDepthRender(false);
-				break;
-		}
-		case EWeaponState::EWS_Dropped:
-		{
-				//客户端和服务器都执行，需要判断authority
-			if (HasAuthority())
-			{
-				AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
-			}
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-			WeaponMesh->SetSimulatePhysics(true);
-			WeaponMesh->SetEnableGravity(true);
-			BlasterPlayerController = nullptr;
-			BlasterPlayerCharacter = nullptr;
-			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
-			WeaponMesh->MarkRenderStateDirty();
-			SetDepthRender(true);
-				break;
-		}
-		default:
-			break;
-	}
+	OnStateSet();
 }
 
 //同步到客户端，修改UI
@@ -206,39 +228,17 @@ void AWeapon::OnRep_WeaponState()
 {
 	switch (WeaponState)
 	{
-		case EWeaponState::EWS_Secondary:
-		{
-			ShowPickUpWidget(false);
-			WeaponMesh->SetEnableGravity(false);
-			WeaponMesh->SetSimulatePhysics(false);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
-			SetDepthRender(true);
-			break;
-		}
-		case EWeaponState::EWS_Equipped:
-		{
-			ShowPickUpWidget(false);
-			WeaponMesh->SetEnableGravity(false);
-			WeaponMesh->SetSimulatePhysics(false);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			SetDepthRender(false);
-				break;
-		}
-		case EWeaponState::EWS_Dropped:
-		{
-			// WeaponMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-			WeaponMesh->SetSimulatePhysics(true);
-			WeaponMesh->SetEnableGravity(true);
-			BlasterPlayerController = nullptr;
-			BlasterPlayerCharacter = nullptr;
-			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
-			SetDepthRender(true);
-				break;
-		}
-		default:
-			break;
+	case EWeaponState::EWS_Secondary:
+		OnSecondary();
+		break;
+	case EWeaponState::EWS_Equipped:
+		OnEquipped();
+		break;
+	case EWeaponState::EWS_Dropped:
+		OnDropped();
+		break;
+	default:
+		break;
 	}
 }
 

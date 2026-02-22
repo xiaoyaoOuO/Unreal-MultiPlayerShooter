@@ -78,6 +78,14 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
+void ABlasterCharacter::ServerSwapWeaponButtonPressed_Implementation()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->SwapWeapon();
+	}
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (IsValid(LastWeapon))
@@ -174,6 +182,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire",IE_Released,this,&ABlasterCharacter::FireButtonReleased);
 	PlayerInputComponent->BindAction("Reload",IE_Pressed,this,&ABlasterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("GrenadeToss",IE_Pressed,this,&ABlasterCharacter::GrenadeButtonPressed);
+	PlayerInputComponent->BindAction("SwapWeapon",IE_Pressed,this,&ABlasterCharacter::SwapWeaponButtonPressed);
 
 	PlayerInputComponent->BindAxis("Look Up / Down",this,&ABlasterCharacter::LookUp);
 	PlayerInputComponent->BindAxis("Move Forward / Backward",this,&ABlasterCharacter::MoveForward);
@@ -268,14 +277,7 @@ void ABlasterCharacter::EquipButtonPressed()
 {
 	if (CombatComponent)
 	{
-		if (HasAuthority())
-		{
-			CombatComponent->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
 	}
 }
 
@@ -481,6 +483,14 @@ void ABlasterCharacter::GrenadeButtonPressed()
 {
 	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
 	CombatComponent->ThrowGrenade();
+}
+
+void ABlasterCharacter::SwapWeaponButtonPressed()
+{
+	if (CombatComponent && CombatComponent->CanSwapWeapon())
+	{
+		ServerSwapWeaponButtonPressed();
+	}
 }
 
 void ABlasterCharacter::HideCharacterWhenCameraClose()
