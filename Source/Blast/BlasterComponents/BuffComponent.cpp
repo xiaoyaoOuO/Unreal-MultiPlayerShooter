@@ -28,9 +28,6 @@ void UBuffComponent::SpeedBuff(float WalkSpeed, float CrouchWalkSpeed, float Buf
 	{
 		if (UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
 		{
-			OriginWalkSpeed = CharacterMovementComponent->MaxWalkSpeed;
-			OriginCrouchSpeed = CharacterMovementComponent->MaxWalkSpeedCrouched;
-
 			CharacterMovementComponent->MaxWalkSpeed = WalkSpeed;
 			CharacterMovementComponent->MaxWalkSpeedCrouched = CrouchWalkSpeed;
 			MulticastSetSpeed(WalkSpeed, CrouchWalkSpeed);
@@ -49,7 +46,6 @@ void UBuffComponent::JumpBuff(float JumpZVelocity, float BuffTime)
 	{
 		if (UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
 		{
-			OriginJumpZVelocity = CharacterMovementComponent->JumpZVelocity;
 			CharacterMovementComponent->JumpZVelocity = JumpZVelocity;
 			MulticastSetJump(JumpZVelocity);
 		}

@@ -51,4 +51,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UNiagaraComponent* PickUpNiagaraComponent;
+
+	UPROPERTY(EditAnywhere)
+	float BindOverlapDelay = 0.1f;
+
+	FTimerHandle BindOverlapDelayTimer;
+	
+	UFUNCTION()
+	void BindOverlapTimerFinished();
 };

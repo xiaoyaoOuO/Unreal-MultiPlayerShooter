@@ -54,7 +54,10 @@ void APickUp::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this,&APickUp::OnSphereOverlap);
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(BindOverlapDelayTimer,this,&APickUp::BindOverlapTimerFinished, BindOverlapDelay);
+	}
 }
 
 void APickUp::Destroyed()
@@ -75,6 +78,11 @@ void APickUp::Destroyed()
 			GetActorRotation()
 		);
 	}
+}
+
+void APickUp::BindOverlapTimerFinished()
+{
+	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this,&APickUp::OnSphereOverlap);
 }
 
 
