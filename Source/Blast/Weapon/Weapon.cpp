@@ -3,6 +3,7 @@
 
 #include "Weapon.h"
 
+#include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -73,7 +74,10 @@ void AWeapon::OnRep_Owner()
 		BlasterPlayerController = nullptr;
 	}
 
-	UpdateAmmoAmountHUD();
+	if (BlasterPlayerCharacter && BlasterPlayerCharacter->GetCombatComponent() && BlasterPlayerCharacter->GetCombatComponent()->EquippedWeapon == this)
+	{
+		UpdateAmmoAmountHUD();
+	}
 }
 
 void AWeapon::OnRep_AmmoAmount()
@@ -155,6 +159,15 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 	WeaponState = State;
 	switch (WeaponState)
 	{
+		case EWeaponState::EWS_Secondary:
+			ShowPickUpWidget(false);
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			WeaponMesh->SetEnableGravity(false);
+			WeaponMesh->SetSimulatePhysics(false);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+			SetDepthRender(true);
+				break;
 		case EWeaponState::EWS_Equipped:
 		{
 			//在服务器执行，所以不用判断authority
@@ -178,6 +191,8 @@ void AWeapon::SetWeaponState(const EWeaponState State)
 			WeaponMesh->SetEnableGravity(true);
 			BlasterPlayerController = nullptr;
 			BlasterPlayerCharacter = nullptr;
+			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
+			WeaponMesh->MarkRenderStateDirty();
 			SetDepthRender(true);
 				break;
 		}
@@ -191,6 +206,16 @@ void AWeapon::OnRep_WeaponState()
 {
 	switch (WeaponState)
 	{
+		case EWeaponState::EWS_Secondary:
+		{
+			ShowPickUpWidget(false);
+			WeaponMesh->SetEnableGravity(false);
+			WeaponMesh->SetSimulatePhysics(false);
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+			SetDepthRender(true);
+			break;
+		}
 		case EWeaponState::EWS_Equipped:
 		{
 			ShowPickUpWidget(false);
@@ -208,6 +233,7 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetEnableGravity(true);
 			BlasterPlayerController = nullptr;
 			BlasterPlayerCharacter = nullptr;
+			WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
 			SetDepthRender(true);
 				break;
 		}

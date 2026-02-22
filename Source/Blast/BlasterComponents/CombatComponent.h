@@ -22,6 +22,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void AttachWeaponToRightHand(AWeapon* Weapon);
+	void AttachWeaponToBackBag(AWeapon* Weapon);
+	void EquipPrimaryWeapon(AWeapon* Weapon);
+	void EquipSecondaryWeapon(AWeapon* Weapon);
 	friend class ABlasterCharacter;
 	void EquipWeapon(AWeapon* Weapon);
 	void SetAiming(bool bIsAiming);
@@ -80,6 +83,9 @@ protected:
 	void OnRep_EquippedWeapon();
 
 	UFUNCTION()
+	void OnRep_SecondaryWeapon();
+
+	UFUNCTION()
 	void OnRep_CarriedAmmoAmount();
 	
 	UFUNCTION()
@@ -103,6 +109,9 @@ public:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing=OnRep_SecondaryWeapon)
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;

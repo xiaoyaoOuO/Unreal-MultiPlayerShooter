@@ -16,6 +16,7 @@ enum class EWeaponState: uint8
 	EWS_Initial UMETA(DisplayName = "Initial State"),
 	EWS_Equipped UMETA(DisplayName = "Equipped"),
 	EWS_Dropped UMETA(DisplayName = "Dropped"),
+	EWS_Secondary UMETA(DisplayName = "Secondary"), //副武器
 
 	EWS_MAX UMETA(DisplayName = "Default MAX")
 };
