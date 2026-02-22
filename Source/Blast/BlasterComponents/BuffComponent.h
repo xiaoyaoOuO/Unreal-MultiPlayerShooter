@@ -22,6 +22,8 @@ public:
 
 	void JumpBuff(float JumpZVelocity = 1000.f, float BuffTime = 5.f);
 
+	void ShieldBuff(float Shield, float BuffTime);
+
 	UFUNCTION()
 	void ResetSpeed();
 
@@ -37,6 +39,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void HealBuffUpdate(float DeltaTime);
+	void ShieldBuffUpdate(float DeltaTime);
 	void InitDefaultSpeed(float WalkSpeed, float CrouchWalkSpeed);
 	void InitDefaultJump(float JumpZVelocity);
 
@@ -50,7 +53,6 @@ private:
 	//Health Buff
 	bool  bIsHealthBuffActive;
 	float HealthAmount;
-	float HealthTime;
 	float HealthRate;
 
 	//Speed Buff
@@ -61,4 +63,9 @@ private:
 	//Jump Buff
 	FTimerHandle JumpBuffTimer;
 	float OriginJumpZVelocity;
+
+	//Shield Buff
+	bool  bIsShieldBuffActive;
+	float ShieldAmount;
+	float ShieldRate;
 };

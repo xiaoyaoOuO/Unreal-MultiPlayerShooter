@@ -26,8 +26,8 @@ struct FHUDData
 	GENERATED_BODY()
 	int32 CarriedAmmo;
 	int32 GrenadeAmount;
-	int8 CurrentShield;
-	int8 CurrentMaxShield;
+	int32 CurrentShield;
+	int32 CurrentMaxShield;
 	float CountDownTime;
 };
 

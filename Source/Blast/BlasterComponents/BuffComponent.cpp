@@ -17,9 +17,8 @@ void UBuffComponent::HealthBuff(float Health, float BuffTime)
 {
 	if (bIsHealthBuffActive) return;
 	HealthAmount = Health;
-	HealthTime = BuffTime;
 	bIsHealthBuffActive = true;
-	HealthRate = HealthAmount / HealthTime;
+	HealthRate = HealthAmount / BuffTime;
 }
 
 void UBuffComponent::SpeedBuff(float WalkSpeed, float CrouchWalkSpeed, float BuffTime)
@@ -59,6 +58,14 @@ void UBuffComponent::JumpBuff(float JumpZVelocity, float BuffTime)
 	{
 		World->GetTimerManager().SetTimer(JumpBuffTimer,this,&UBuffComponent::ResetJump, BuffTime);
 	}
+}
+
+void UBuffComponent::ShieldBuff(float Shield, float BuffTime)
+{
+	if (bIsShieldBuffActive) return;
+	ShieldAmount = Shield;
+	bIsShieldBuffActive = true;
+	ShieldRate = ShieldAmount / BuffTime;
 }
 
 void UBuffComponent::ResetSpeed()
@@ -140,6 +147,30 @@ void UBuffComponent::HealBuffUpdate(float DeltaTime)
 	}
 }
 
+void UBuffComponent::ShieldBuffUpdate(float DeltaTime)
+{
+	if (bIsShieldBuffActive)
+	{
+		float ThisFrameShouldReplenish = ShieldRate * DeltaTime;
+		Character = Character == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : Character;
+		if (Character)
+		{
+			ShieldAmount -= ThisFrameShouldReplenish;
+			
+			float CharacterCurrentShield = Character->Get_CurrentShield();
+			CharacterCurrentShield = FMath::Clamp(CharacterCurrentShield + ThisFrameShouldReplenish,0.f,Character->Get_MaxShield());
+
+			Character->Set_CurrentShield(CharacterCurrentShield);
+			Character->UpdateShieldHUD();
+
+			if (CharacterCurrentShield >= Character->Get_MaxShield() || ShieldAmount <= 0.f)
+			{
+				bIsShieldBuffActive = false;
+			}
+		}
+	}
+}
+
 void UBuffComponent::InitDefaultSpeed(float WalkSpeed, float CrouchWalkSpeed)
 {
 	OriginWalkSpeed = WalkSpeed;
@@ -156,6 +187,8 @@ void UBuffComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	HealBuffUpdate(DeltaTime);
+
+	ShieldBuffUpdate(DeltaTime);
 
 }
 

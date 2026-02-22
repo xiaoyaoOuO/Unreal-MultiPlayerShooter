@@ -116,10 +116,10 @@ private:
 	float CurrentHealth;
 
 	UPROPERTY(EditAnywhere,Category= "Character Stats")
-	int8 MaxShield = 50;
+	float MaxShield = 50;
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentShield,VisibleAnywhere,Category= "Character Stats")
-	int8 CurrentShield;
+	float CurrentShield;
 	
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
@@ -237,6 +237,9 @@ public:
 	FORCEINLINE float Get_CurrentHealth() const {return CurrentHealth;}
 	FORCEINLINE float Get_MaxHealth() const {return MaxHealth;}
 	FORCEINLINE void Set_CurrentHealth(float Health) {CurrentHealth = Health;}
+	FORCEINLINE float Get_CurrentShield() const {return CurrentShield;}
+	FORCEINLINE float Get_MaxShield() const {return MaxShield;}
+	FORCEINLINE void Set_CurrentShield(float Shield) {CurrentShield = Shield;}
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const {return TurningInPlace;}
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera;}
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const {return GrenadeMesh;}

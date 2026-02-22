@@ -370,8 +370,22 @@ void ABlasterCharacter::OnRep_CurrentShield()
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
                                       AController* InstigatedBy, AActor* DamageCauser)
 {
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage,0.f,MaxHealth);
+	float DamageToHealth = Damage;
+	if (CurrentShield > 0)
+	{
+		if (CurrentShield >= DamageToHealth)
+		{
+			CurrentShield = FMath::Clamp(CurrentShield - DamageToHealth,0,MaxShield);
+			DamageToHealth = 0;
+		}else
+		{
+			DamageToHealth = FMath::Clamp(DamageToHealth - CurrentShield,0.f,DamageToHealth);
+			CurrentShield = 0;
+		}
+	}
+	CurrentHealth = FMath::Clamp(CurrentHealth - DamageToHealth,0.f,MaxHealth);
 	UpdateHealthHUD();
+	UpdateShieldHUD();
 	PlayHitReactMontage();
 	if (CurrentHealth <= 0.f)
 	{
