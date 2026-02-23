@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "CharacterOverlay.generated.h"
@@ -45,4 +46,13 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	UProgressBar* ShieldBar;
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* PingText;
+
+	UPROPERTY(meta=(BindWidget))
+	UImage* HighPingImage;
+	
+	UPROPERTY(meta=(BindWidgetAnim),Transient)
+	UWidgetAnimation* HighPingWarningAnimation;
 };

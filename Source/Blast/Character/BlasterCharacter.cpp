@@ -647,11 +647,25 @@ void ABlasterCharacter::SetGrenadeVisibility(bool bVisible)
 	}
 }
 
-void ABlasterCharacter::Elim()
+void ABlasterCharacter::DropSecondaryWeapon()
 {
-	bShouldElim = true;
-	PlayElimMontage();
+	if (CombatComponent && CombatComponent->SecondaryWeapon)
+	{
+		if (CombatComponent->SecondaryWeapon->bShouldDestroy)
+		{
+			CombatComponent->SecondaryWeapon->Destroy();
+		}
+		else
+		{
+			CombatComponent->SecondaryWeapon->Dropped();
+		}
+		// Clear the reference so Destroyed() won't delete the dropped weapon.
+		CombatComponent->SecondaryWeapon = nullptr;
+	}
+}
 
+void ABlasterCharacter::DropPrimaryWeapon()
+{
 	//掉落武器
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
@@ -666,6 +680,20 @@ void ABlasterCharacter::Elim()
 		// Clear the reference so Destroyed() won't delete the dropped weapon.
 		CombatComponent->EquippedWeapon = nullptr;
 	}
+}
+
+void ABlasterCharacter::DropWeapons()
+{
+	DropPrimaryWeapon();
+	DropSecondaryWeapon();
+}
+
+void ABlasterCharacter::Elim()
+{
+	bShouldElim = true;
+	PlayElimMontage();
+
+	DropWeapons();
 
 	//禁用移动，禁用碰撞
 	GetCharacterMovement()->DisableMovement();

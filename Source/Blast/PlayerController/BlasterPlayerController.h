@@ -100,6 +100,23 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
 	FName MatchState;
 
+	/*
+	 * 高Ping的警告
+	 */
+	float CurrentPing;
+	UPROPERTY(EditAnywhere)
+	float HighPingThreshold = 1.f;
+	UPROPERTY(EditAnywhere)
+	float UpdatePingFrequency = 2.f;
+	float UpdatePingTimer = 0.f;
+	//隔一段时间检查一次，如果ping过高就显示警告
+	UPROPERTY(EditAnywhere)
+	float PingWarningFrequency = 20.f;
+	UPROPERTY(EditAnywhere)
+	float PingAnimationDuration = 1.f;
+	float PingWarningTimer = 0.f;
+	float PingWarningAnimationTimer = 0.f;
+
 	void HandleMatchStarted();
 	void HandleCoolDown();
 	UFUNCTION()
@@ -131,6 +148,10 @@ public:
 	void SetBlasterPlayerScore(float Score);
 	void SetBlasterPlayerDefeat(int32 Defeat);
 	void SetBlasterPlayerAmmoAmount(int32 AmmoAmount);
+	void UpdateCarriedAmmo(const FHUDData& Data, UCharacterOverlay* CharacterOverlay);
+	void UpdateCountDown(const FHUDData& Data, UCharacterOverlay* CharacterOverlay);
+	void UpdateGrenadeAmount(const FHUDData& Data, UCharacterOverlay* CharacterOverlay);
+	void UpdateShield(const FHUDData& Data, UCharacterOverlay* CharacterOverlay);
 	void SetBlasterPlayerHUDData(const EHUDType& HUDType,const FHUDData& Data);
 	void SetAnnouncementHUDData(const EHUDType& HUDType,const FHUDData& Data);
 	void OnMatchStateSet(FName State);
@@ -138,4 +159,7 @@ public:
 	void DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data);
 	void UpdateCharacterShield(float CurrentShield, float MaxShield);
 	void PollInit();
+	void UpdatePingHUD();
+	void UpdatePingWarning(float DeltaSeconds);
+	void PollForPing(float DeltaSeconds);
 };

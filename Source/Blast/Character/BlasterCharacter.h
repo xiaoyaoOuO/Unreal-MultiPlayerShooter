@@ -228,6 +228,9 @@ public:
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
 	void JumpToShotgunEnd();  //按个数添加散弹枪子弹，当满子弹后就跳跃至End
 	void SetGrenadeVisibility(bool bVisible);
+	void DropSecondaryWeapon();
+	void DropPrimaryWeapon();
+	void DropWeapons();
 	void InitialWeapon(); 	//玩家出生默认的武器
 	
 	AWeapon* Get_EquippedWeapon();

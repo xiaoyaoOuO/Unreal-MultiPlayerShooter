@@ -123,6 +123,8 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	UpdateTimeHUD();
 
 	PollInit();
+
+	PollForPing(DeltaSeconds);	
 }
 
 void ABlasterPlayerController::ReceivedPlayer()
@@ -247,6 +249,131 @@ void ABlasterPlayerController::SetBlasterPlayerAmmoAmount(int32 AmmoAmount)
 	}
 }
 
+void ABlasterPlayerController::UpdateCarriedAmmo(const FHUDData& Data, UCharacterOverlay* CharacterOverlay)
+{
+	if (CharacterOverlay->CarriedAmmoAmountText)
+	{
+		FString CarriedAmmoAmountString = FString::Printf(TEXT("%d"), Data.CarriedAmmo);
+		CharacterOverlay->CarriedAmmoAmountText->SetText(FText::FromString(CarriedAmmoAmountString));
+		bHasInitAmmo = true;
+	}
+}
+
+void ABlasterPlayerController::UpdateCountDown(const FHUDData& Data, UCharacterOverlay* CharacterOverlay)
+{
+	if (CharacterOverlay->CountDownText)
+	{
+		uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
+		uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
+
+		FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
+		if (Data.CountDownTime <= 0.f)
+		{
+			CountDownTimeString = FString("");
+		}
+		CharacterOverlay->CountDownText->SetText(FText::FromString(CountDownTimeString));
+	}
+}
+
+void ABlasterPlayerController::UpdateGrenadeAmount(const FHUDData& Data, UCharacterOverlay* CharacterOverlay)
+{
+	if (CharacterOverlay->GrenadeAmountText)
+	{
+		FString CarriedGrenadeAmountString = FString::Printf(TEXT("%d"), Data.GrenadeAmount);
+		CharacterOverlay->GrenadeAmountText->SetText(FText::FromString(CarriedGrenadeAmountString));
+		bHasInitGrenade = true;
+	}
+}
+
+void ABlasterPlayerController::UpdateShield(const FHUDData& Data, UCharacterOverlay* CharacterOverlay)
+{
+	if (CharacterOverlay->ShieldBar && CharacterOverlay->ShieldText)
+	{
+		bHasInitShield = true;
+		if (Data.CurrentMaxShield <= 0)
+		{
+			CharacterOverlay->ShieldBar->SetPercent(0.f);
+			CharacterOverlay->ShieldText->SetText(FText::FromString(TEXT("0/0")));
+			return;
+		}
+		float ShieldPercent = static_cast<float>(Data.CurrentShield) / static_cast<float>(Data.CurrentMaxShield);
+		UE_LOG(LogTemp,Warning,TEXT("Shield Percent = %f"), ShieldPercent);
+		CharacterOverlay->ShieldBar->SetPercent(ShieldPercent);
+		FString ShieldText = FString::Printf(TEXT("%d/%d"), Data.CurrentShield, Data.CurrentMaxShield);
+		CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldText));
+	}
+}
+
+void ABlasterPlayerController::UpdatePingHUD()
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD == nullptr) return;
+	UCharacterOverlay* CharacterOverlay = BlasterHUD->GetCharacterOverlay();
+	if (CharacterOverlay == nullptr) return;
+	
+	if (CharacterOverlay->PingText)
+	{
+		if (APlayerState* BlasterPlayerState = GetPlayerState<APlayerState>())
+		{
+			CurrentPing = BlasterPlayerState->GetCompressedPing() * 4.f;
+			FString PingString = FString::Printf(TEXT("%d ms"), FMath::CeilToInt(CurrentPing));
+			CharacterOverlay->PingText->SetText(FText::FromString(PingString));
+		}
+	}
+}
+
+void ABlasterPlayerController::UpdatePingWarning(float DeltaSeconds)
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD == nullptr) return;
+	UCharacterOverlay* CharacterOverlay = BlasterHUD->GetCharacterOverlay();
+	if (CharacterOverlay == nullptr) return;
+	
+	if (CharacterOverlay->IsAnimationPlaying(CharacterOverlay->HighPingWarningAnimation))
+	{
+		PingWarningAnimationTimer += DeltaSeconds;
+		if (PingWarningAnimationTimer >= PingAnimationDuration)
+		{
+			if (CharacterOverlay->HighPingImage)
+			{
+				CharacterOverlay->HighPingImage->SetOpacity(0.f);
+			}
+			CharacterOverlay->StopAnimation(CharacterOverlay->HighPingWarningAnimation);
+			PingWarningAnimationTimer = 0.f;
+		}
+	}else
+	{
+		PingWarningTimer += DeltaSeconds;
+		if (PingWarningTimer >= PingWarningFrequency)
+		{
+			if (CurrentPing > HighPingThreshold)
+			{
+				if (CharacterOverlay->HighPingImage)
+				{
+					CharacterOverlay->HighPingImage->SetOpacity(1.f);
+				}
+				CharacterOverlay->PlayAnimation(CharacterOverlay->HighPingWarningAnimation, 0.f, 0);
+				PingWarningTimer = 0.f;
+			}
+		}
+	}
+}
+
+void ABlasterPlayerController::PollForPing(float DeltaSeconds)
+{
+	if (UpdatePingTimer >= UpdatePingFrequency)
+	{
+		UpdatePingHUD();
+		UpdatePingTimer = 0.f;
+	}
+	else
+	{
+		UpdatePingTimer += DeltaSeconds;
+	}
+
+	UpdatePingWarning(DeltaSeconds);
+}
+
 void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, const FHUDData& Data)
 {
 	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
@@ -257,51 +384,16 @@ void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, 
 	switch (HUDType)
 	{
 	case EHT_CarriedAmmo:
-		if (CharacterOverlay->CarriedAmmoAmountText)
-		{
-			FString CarriedAmmoAmountString = FString::Printf(TEXT("%d"), Data.CarriedAmmo);
-			CharacterOverlay->CarriedAmmoAmountText->SetText(FText::FromString(CarriedAmmoAmountString));
-			bHasInitAmmo = true;
-		}
+		UpdateCarriedAmmo(Data, CharacterOverlay);
 		break;
 	case EHT_CountDownTimer:
-		if (CharacterOverlay->CountDownText)
-		{
-			uint32 Minute = FMath::FloorToInt(Data.CountDownTime / 60.f);
-			uint32 Second = FMath::CeilToInt(Data.CountDownTime - Minute * 60);
-
-			FString CountDownTimeString = FString::Printf(TEXT("%02d:%02d"), Minute, Second);
-			if (Data.CountDownTime <= 0.f)
-			{
-				CountDownTimeString = FString("");
-			}
-			CharacterOverlay->CountDownText->SetText(FText::FromString(CountDownTimeString));
-		}
+		UpdateCountDown(Data, CharacterOverlay);
 		break;
 	case EHT_GrenadeAmount:
-		if (CharacterOverlay->GrenadeAmountText)
-		{
-			FString CarriedGrenadeAmountString = FString::Printf(TEXT("%d"), Data.GrenadeAmount);
-			CharacterOverlay->GrenadeAmountText->SetText(FText::FromString(CarriedGrenadeAmountString));
-			bHasInitGrenade = true;
-		}
+		UpdateGrenadeAmount(Data, CharacterOverlay);
 		break;
 	case EHT_ShieldBar:
-		if (CharacterOverlay->ShieldBar && CharacterOverlay->ShieldText)
-		{
-			bHasInitShield = true;
-			if (Data.CurrentMaxShield <= 0)
-			{
-				CharacterOverlay->ShieldBar->SetPercent(0.f);
-				CharacterOverlay->ShieldText->SetText(FText::FromString(TEXT("0/0")));
-				return;
-			}
-			float ShieldPercent = static_cast<float>(Data.CurrentShield) / static_cast<float>(Data.CurrentMaxShield);
-			UE_LOG(LogTemp,Warning,TEXT("Shield Percent = %f"), ShieldPercent);
-			CharacterOverlay->ShieldBar->SetPercent(ShieldPercent);
-			FString ShieldText = FString::Printf(TEXT("%d/%d"), Data.CurrentShield, Data.CurrentMaxShield);
-			CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldText));
-		}
+		UpdateShield(Data, CharacterOverlay);
 		break;
 	default:
 		break;
