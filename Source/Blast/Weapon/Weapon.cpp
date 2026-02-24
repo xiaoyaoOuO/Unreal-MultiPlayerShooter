@@ -51,14 +51,12 @@ void AWeapon::BeginPlay()
 	{
 		PickUpWidget->SetVisibility(false);
 	}
-
-	if (HasAuthority())
-	{
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this,&AWeapon::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this,&AWeapon::OnSphereEndOverlap);
-	}
+	
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	AreaSphere->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this,&AWeapon::OnSphereOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this,&AWeapon::OnSphereEndOverlap);
+	
 }
 
 void AWeapon::OnRep_Owner()
@@ -189,10 +187,7 @@ void AWeapon::OnEquipped()
 {
 	//在服务器执行，所以不用判断authority
 	ShowPickUpWidget(false);
-	if (HasAuthority())
-	{
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	}
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);

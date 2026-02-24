@@ -19,6 +19,7 @@ class BLAST_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
+	void LocalFire(FVector_NetQuantize HitTarget);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void AttachWeaponToRightHand(AWeapon* Weapon);

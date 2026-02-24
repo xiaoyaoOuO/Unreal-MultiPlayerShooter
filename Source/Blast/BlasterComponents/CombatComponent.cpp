@@ -23,9 +23,10 @@ UCombatComponent::UCombatComponent()
 	bCanFire = true;
 }
 
-void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarget)
+void UCombatComponent::LocalFire(FVector_NetQuantize HitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
+	
 	if (Character)
 	{
 		if (CombatState == ECombatState::ECS_Reloading && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
@@ -36,6 +37,12 @@ void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarge
 		Character->PlayFireMontage();
 		EquippedWeapon->Fire(HitTarget);
 	}
+}
+
+void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarget)
+{
+	if (Character && Character->IsLocallyControlled()) return;
+	LocalFire(HitTarget);
 }
 
 void UCombatComponent::ServerFire_Implementation(FVector_NetQuantize HitTarget)
@@ -304,7 +311,7 @@ void UCombatComponent::OnGrenadeLaunch()
 
 bool UCombatComponent::CanSwapWeapon()
 {
-	return EquippedWeapon && SecondaryWeapon;
+	return EquippedWeapon && SecondaryWeapon && CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::SwapWeapon()
@@ -646,6 +653,7 @@ void UCombatComponent::Fire()
 	{
 		ShootingFactor = 0.2f;
 		ServerFire(HitTargetPoint);
+		LocalFire(HitTargetPoint);
 		StartFireDelay();
 	}
 }
