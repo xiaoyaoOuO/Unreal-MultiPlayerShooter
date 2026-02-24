@@ -19,7 +19,7 @@ class BLAST_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
-	void LocalFire(FVector_NetQuantize HitTarget);
+	void LocalFire(const FVector_NetQuantize& HitTarget);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void AttachWeaponToRightHand(AWeapon* Weapon);
@@ -29,6 +29,7 @@ public:
 	friend class ABlasterCharacter;
 	void EquipWeapon(AWeapon* Weapon);
 	void SetAiming(bool bIsAiming);
+	void FireWeaponByType();
 	void Fire();
 	void FireButtonPressed(bool bPressed);
 	void Reload();
@@ -106,6 +107,10 @@ protected:
 	void UpdateWeaponAmmo();
 
 	void PutWeaponToBack();
+
+	void FireProjectile();
+	void FireHitScan();
+	void FireShotgun();
 
 public:
 	class ABlasterCharacter* Character;

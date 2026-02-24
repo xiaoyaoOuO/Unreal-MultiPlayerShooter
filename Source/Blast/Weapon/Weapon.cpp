@@ -245,6 +245,16 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AWeapon, AmmoAmount);
 }
 
+FVector AWeapon::AmmoSpawnLocation() const
+{
+	if (const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(FName("MuzzleFlash")))
+	{
+		FVector StartLocation = MuzzleSocket->GetSocketTransform(WeaponMesh).GetLocation();
+		return StartLocation;
+	}
+	return FVector::ZeroVector;
+}
+
 void AWeapon::Fire(const FVector& HitTarget)
 {
 	if (FireAnimationAsset)

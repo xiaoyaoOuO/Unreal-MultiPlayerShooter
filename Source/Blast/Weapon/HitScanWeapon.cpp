@@ -50,17 +50,17 @@ FVector AHitScanWeapon::TraceEndWithScatter(const FVector& StartLocation, const 
 	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
 	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
 
-	DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
+	// DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
 	//在散射范围内随机一个点
 	FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
 	FVector RandomPoint = SphereCenter + RandomScaterVector;
-	DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
+	// DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
 	return RandomPoint;
 }
 
 void AHitScanWeapon::WeaponHit(FHitResult& HitResult,const UWorld* World,const FVector& StartLocation,const FVector& HitTarget)
 {
-	FVector EndLocation = StartLocation + (TraceEndWithScatter(StartLocation,HitTarget) - StartLocation) * 1.25f;
+	FVector EndLocation = StartLocation + (HitTarget - StartLocation) * 1.25f;
 	World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility);
 	FVector BeamLocation = EndLocation;
 	if (HitResult.bBlockingHit)

@@ -41,8 +41,8 @@ protected:
 public:
 	void FireEffect(const FVector& StartLocation,const FVector& BeamLocation);
 	virtual void Fire(const FVector& HitTarget) override;
+	virtual FVector TraceEndWithScatter(const FVector& StartLocation,const FVector& HitTarget);
 
 protected:
-	virtual FVector TraceEndWithScatter(const FVector& StartLocation,const FVector& HitTarget);
 	virtual void WeaponHit(FHitResult& HitResult,const UWorld* World, const FVector& StartLocation ,const FVector& HitTarget);
 };

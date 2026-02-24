@@ -20,6 +20,17 @@ enum class EWeaponState: uint8
 
 	EWS_MAX UMETA(DisplayName = "Default MAX")
 };
+
+UENUM()
+enum class EFireType : uint8
+{
+	EFT_HitScan UMETA(DisplayName = "HitScan"),
+	EFT_Projectile UMETA(DisplayName = "Projectile"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun"),
+
+	EFT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class BLAST_API AWeapon : public AActor
 {
@@ -85,6 +96,7 @@ public:
 	void OnRep_WeaponState();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual FVector AmmoSpawnLocation() const;
 
 	virtual void Fire(const FVector& HitTarget);
 	virtual void Dropped();
@@ -96,6 +108,7 @@ public:
 	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;}
 	FORCEINLINE EWeaponType Get_WeaponType() const {return WeaponType;}
 	FORCEINLINE int32 Get_MagCapacity() const {return MagCapacity;}
+	FORCEINLINE EFireType Get_FireType() const {return FireType;}
 
 
 protected:
@@ -156,6 +169,8 @@ public:
 	float FireDelay = 0.15f;
 	UPROPERTY(EditAnywhere,Category="Weapon")
 	bool bAutomaticFire = true;
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	EFireType FireType;
 
 
 	//初始武器需要在角色死亡时销毁

@@ -3,6 +3,7 @@
 
 #include "CombatComponent.h"
 
+#include "Blast/Weapon/HitScanWeapon.h"
 #include "Blast/Weapon/Projectile.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
@@ -23,7 +24,7 @@ UCombatComponent::UCombatComponent()
 	bCanFire = true;
 }
 
-void UCombatComponent::LocalFire(FVector_NetQuantize HitTarget)
+void UCombatComponent::LocalFire(const FVector_NetQuantize& HitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
 	
@@ -36,6 +37,7 @@ void UCombatComponent::LocalFire(FVector_NetQuantize HitTarget)
 		}
 		Character->PlayFireMontage();
 		EquippedWeapon->Fire(HitTarget);
+		DrawDebugSphere(GetWorld(), HitTarget, 12.f, 12, FColor::Red, false, 2.f);
 	}
 }
 
@@ -487,6 +489,28 @@ void UCombatComponent::PutWeaponToBack()
 	}
 }
 
+void UCombatComponent::FireProjectile()
+{
+	LocalFire(HitTargetPoint);
+	ServerFire(HitTargetPoint);
+}
+
+void UCombatComponent::FireHitScan()
+{
+	AHitScanWeapon* HitScanWeapon = Cast<AHitScanWeapon>(EquippedWeapon);
+	if (HitScanWeapon == nullptr) return;
+	
+	FVector StartLocation = HitScanWeapon->AmmoSpawnLocation();
+	FVector ToTarget = HitScanWeapon->TraceEndWithScatter(StartLocation,HitTargetPoint);
+	
+	LocalFire(ToTarget);
+	ServerFire(ToTarget);
+}
+
+void UCombatComponent::FireShotgun()
+{
+}
+
 void UCombatComponent::StartFireDelay()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
@@ -647,13 +671,31 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	}
 }
 
+void UCombatComponent::FireWeaponByType()
+{
+	EFireType FireType = EquippedWeapon->Get_FireType();
+	switch (FireType)
+	{
+	case EFireType::EFT_HitScan:
+		FireHitScan();
+		break;
+	case EFireType::EFT_Projectile:
+		FireProjectile();
+		break;
+	case EFireType::EFT_Shotgun:
+		FireShotgun();
+		break;
+	default:
+		break;
+	}
+}
+
 void UCombatComponent::Fire()
 {
 	if (CanFire())
 	{
 		ShootingFactor = 0.2f;
-		ServerFire(HitTargetPoint);
-		LocalFire(HitTargetPoint);
+		FireWeaponByType();
 		StartFireDelay();
 	}
 }
