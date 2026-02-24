@@ -8,6 +8,7 @@
 #include "Components/ActorComponent.h"
 #include "Blast/HUD/BlasterHUD.h"
 #include "Blast/Weapon/Projectile.h"
+#include "Blast/Weapon/ShotgunWeapon.h"
 #include "Blast/Weapon/WeaponType.h"
 #include "CombatComponent.generated.h"
 
@@ -20,6 +21,7 @@ class BLAST_API UCombatComponent : public UActorComponent
 public:	
 	UCombatComponent();
 	void LocalFire(const FVector_NetQuantize& HitTarget);
+	void LocalFireShotgun(const TArray<FVector_NetQuantize>& HitTargets);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void AttachWeaponToRightHand(AWeapon* Weapon);
@@ -44,6 +46,12 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerFire(FVector_NetQuantize HitTarget);
+
+	UFUNCTION(Server, Reliable)
+	void ServerShotgunFire(const TArray<FVector_NetQuantize>& HitTargets);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShotgunFire(const TArray<FVector_NetQuantize>& HitTargets);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReload();

@@ -14,11 +14,11 @@ class BLAST_API AShotgunWeapon : public AHitScanWeapon
 {
 	GENERATED_BODY()
 public:
-	virtual void Fire(const FVector& HitTarget) override;
+	void ShotgunFire(const TArray<FVector_NetQuantize>& HitTarget);
+	void GetScatterEndLocations(TArray<FVector_NetQuantize>& HitTargets,const FVector& HitTarget);
 
 protected:
 	virtual FVector TraceEndWithScatter(const FVector& StartLocation,const FVector& HitTarget) override;
-	virtual void WeaponHit(FHitResult& HitResult, const UWorld* World, const FVector& StartLocation, const FVector& HitTarget) override;
 	virtual void OnRep_AmmoAmount() override;
 
 private:

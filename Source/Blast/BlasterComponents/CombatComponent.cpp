@@ -5,6 +5,7 @@
 
 #include "Blast/Weapon/HitScanWeapon.h"
 #include "Blast/Weapon/Projectile.h"
+#include "Blast/Weapon/ShotgunWeapon.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -30,20 +31,34 @@ void UCombatComponent::LocalFire(const FVector_NetQuantize& HitTarget)
 	
 	if (Character)
 	{
-		if (CombatState == ECombatState::ECS_Reloading && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
-		{
-			Character->JumpToShotgunEnd();
-			return;
-		}
 		Character->PlayFireMontage();
 		EquippedWeapon->Fire(HitTarget);
 		DrawDebugSphere(GetWorld(), HitTarget, 12.f, 12, FColor::Red, false, 2.f);
 	}
 }
 
+void UCombatComponent::LocalFireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
+{
+	AShotgunWeapon* ShotgunWeapon = Cast<AShotgunWeapon>(EquippedWeapon);
+	for (const auto & HitTarget : HitTargets)
+	{
+		DrawDebugSphere(GetWorld(), HitTarget, 10.f, 12, FColor::Orange, false,10.f);
+	}
+	if (Character)
+	{
+		if (CombatState == ECombatState::ECS_Reloading && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
+		{
+			Character->JumpToShotgunEnd();
+			return;
+		}
+		Character->PlayFireMontage();
+		ShotgunWeapon->ShotgunFire(HitTargets);
+	}
+}
+
 void UCombatComponent::MulticastFire_Implementation(FVector_NetQuantize HitTarget)
 {
-	if (Character && Character->IsLocallyControlled()) return;
+	if (Character == nullptr || Character->IsLocallyControlled()) return;
 	LocalFire(HitTarget);
 }
 
@@ -91,6 +106,12 @@ void UCombatComponent::Server_SpawnGrenade_Implementation(const FVector_NetQuant
 		CarriedGrenadeAmount = FMath::Clamp(CarriedGrenadeAmount - 1, 0, InitialCarried_ThrownGrenade);
 		UpdateGrenadeHUD();
 	}
+}
+
+void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& HitTargets)
+{
+	if (Character == nullptr || Character->IsLocallyControlled()) return;
+	LocalFireShotgun(HitTargets);
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -509,6 +530,13 @@ void UCombatComponent::FireHitScan()
 
 void UCombatComponent::FireShotgun()
 {
+	TArray<FVector_NetQuantize> HitTargets;
+	AShotgunWeapon* ShotgunWeapon = Cast<AShotgunWeapon>(EquippedWeapon);
+	if (ShotgunWeapon == nullptr) return;
+
+	ShotgunWeapon->GetScatterEndLocations(HitTargets,HitTargetPoint);
+	LocalFireShotgun(HitTargets);
+	ServerShotgunFire(HitTargets);
 }
 
 void UCombatComponent::StartFireDelay()
@@ -748,6 +776,11 @@ void UCombatComponent::PickUpAmmo(EWeaponType WeaponType, int32 AmmoAmount)
 	{
 		CarriedAmmoMap.Emplace(WeaponType, AmmoAmount);
 	}
+}
+
+void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& HitTargets)
+{
+	MulticastShotgunFire(HitTargets);
 }
 
 

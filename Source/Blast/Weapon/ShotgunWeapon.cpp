@@ -8,45 +8,42 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
 
-void AShotgunWeapon::Fire(const FVector& HitTarget)
+void AShotgunWeapon::ShotgunFire(const TArray<FVector_NetQuantize>& HitTargets)
 {
-	AWeapon::Fire(HitTarget);
-
-	AActor* WeaponOwner =  GetOwner();
-	if (WeaponOwner == nullptr || WeaponMesh == nullptr) return;
-
-	if (UWorld* World = GetWorld())
+	/*
+	 * 武器动画以及子弹壳的生成
+	 */
+	UWorld* World = GetWorld();
+	FHitResult HitResult;
+	if (!World) return;
+	if (FireAnimationAsset)
 	{
-		if (const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(FName("MuzzleFlash")))
+		WeaponMesh->PlayAnimation(FireAnimationAsset,false);
+	}
+	if (BulletShell)
+	{
+		if (const USkeletalMeshSocket* AmmoEject = WeaponMesh->GetSocketByName(FName("AmmoEject")))
 		{
-			FHitResult HitResult;
-			FVector StartLocation = MuzzleSocket->GetSocketTransform(WeaponMesh).GetLocation();
-			WeaponHit(HitResult,World,StartLocation,HitTarget);
+			//获取生成子弹的位置（武器mesh存在一个枪口的槽位）
+			FTransform MuzzleTransform = AmmoEject->GetSocketTransform(WeaponMesh);
+			FRotator Rotation = MuzzleTransform.GetRotation().Rotator();
+			World->SpawnActor<ACasting>(
+				BulletShell, // 子弹的蓝图类
+				MuzzleTransform.GetLocation(),
+				Rotation
+			);
 		}
 	}
-	
-}
+	SpendAmmo();
 
-FVector AShotgunWeapon::TraceEndWithScatter(const FVector& StartLocation, const FVector& HitTarget)
-{
-	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
-	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
-
-	DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
-	//在散射范围内随机一个点
-	FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
-	FVector RandomPoint = SphereCenter + RandomScaterVector;
-	DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
-	return RandomPoint;
-}
-
-void AShotgunWeapon::WeaponHit(FHitResult& HitResult, const UWorld* World,
-	const FVector& StartLocation, const FVector& HitTarget)
-{
+	/**
+	 * 霰弹枪的伤害计算：每发射出一颗子弹就进行一次LineTrace，如果击中角色就记录下来，最后根据每个角色被击中的次数来计算总伤害
+	 */
 	TMap<ABlasterCharacter*, int32> HitMap;
-	for (int i=0;i<NumberOfPellets;i++)
+	FVector StartLocation = AmmoSpawnLocation();
+	for (const FVector_NetQuantize& HitTarget : HitTargets)
 	{
-		FVector EndLocation = StartLocation + (TraceEndWithScatter(StartLocation,HitTarget) - StartLocation) * 1.25f;
+		FVector EndLocation = StartLocation + (HitTarget - StartLocation) * 1.25f;
 		World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility);
 		FVector BeamLocation = EndLocation;
 		if (HitResult.bBlockingHit)
@@ -85,6 +82,19 @@ void AShotgunWeapon::WeaponHit(FHitResult& HitResult, const UWorld* World,
 	}
 }
 
+FVector AShotgunWeapon::TraceEndWithScatter(const FVector& StartLocation, const FVector& HitTarget)
+{
+	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
+	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
+
+	DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
+	//在散射范围内随机一个点
+	FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
+	FVector RandomPoint = SphereCenter + RandomScaterVector;
+	DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
+	return RandomPoint;
+}
+
 void AShotgunWeapon::OnRep_AmmoAmount()
 {
 	Super::OnRep_AmmoAmount();
@@ -95,5 +105,20 @@ void AShotgunWeapon::OnRep_AmmoAmount()
 		{
 			BlasterPlayerCharacter->JumpToShotgunEnd();
 		}
+	}
+}
+
+void AShotgunWeapon::GetScatterEndLocations(TArray<FVector_NetQuantize>& HitTargets, const FVector& HitTarget)
+{
+	FVector StartLocation = AmmoSpawnLocation();
+	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
+	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
+	for (int i=0;i<NumberOfPellets;i++)
+	{
+		//在散射范围内随机一个点
+		FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
+		FVector RandomPoint = SphereCenter + RandomScaterVector;
+
+		HitTargets.Add(RandomPoint);
 	}
 }
