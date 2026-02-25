@@ -3,6 +3,7 @@
 
 #include "BlasterAnimInstance.h"
 
+#include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -31,6 +32,10 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	TurningInPlace = BlasterCharacter->Get_TurningInPlace();
 	bElimmed = BlasterCharacter->ShouldElim();
 	bUseFABRIK = BlasterCharacter->Get_CombatState() == ECombatState::ECS_Unoccupied;
+	if (BlasterCharacter->IsLocallyControlled() && BlasterCharacter->GetCombatComponent() != nullptr)
+	{
+		bUseFABRIK = !BlasterCharacter->GetCombatComponent()->bLocalIsReloading;  //本地预测动画时及时调整IK
+	}
 	bUseAimOffsets = bUseFABRIK;
 	bUseRightHandTransform = bUseFABRIK;
 

@@ -147,6 +147,8 @@ public:
 
 	bool bFireButtonPressed;
 
+	bool bLocalIsReloading = false; //本地是否使用IK调整手臂位置，服务端不使用，模拟代理根据CombatState决定是否使用
+
 	FVector HitTargetPoint;
 
 	FHUDPackage HUDPackage;

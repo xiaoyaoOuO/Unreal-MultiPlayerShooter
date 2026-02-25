@@ -23,6 +23,7 @@ UCombatComponent::UCombatComponent()
 	BaseMoveSpeed = 600.f;
 	AimingMoveSpeed = 400.f;
 	bCanFire = true;
+	bLocalIsReloading = false;
 }
 
 void UCombatComponent::LocalFire(const FVector_NetQuantize& HitTarget)
@@ -71,7 +72,10 @@ void UCombatComponent::ServerReload_Implementation()
 {
 	if (Character == nullptr) return;
 	CombatState = ECombatState::ECS_Reloading; //通过复制State令客户端播放装弹动画
-	HandleReload();
+	if (!Character->IsLocallyControlled()) //避免监听客户端重复HandleReload
+	{
+		HandleReload();
+	}
 }
 
 void UCombatComponent::Server_GrenadeToss_Implementation()
@@ -256,6 +260,7 @@ void UCombatComponent::HandleReload()
 void UCombatComponent::OnReloadComplete()
 {
 	if (Character == nullptr) return;
+	if (Character->IsLocallyControlled()) bLocalIsReloading = false; //本地使用IK调整手臂位置，服务端不使用，模拟代理根据CombatState决定是否使用
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
@@ -748,9 +753,11 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmoAmount > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon !=nullptr && EquippedWeapon->Get_AmmoAmount() < EquippedWeapon->Get_MagCapacity())
+	if (CarriedAmmoAmount > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon !=nullptr && EquippedWeapon->Get_AmmoAmount() < EquippedWeapon->Get_MagCapacity() && !bLocalIsReloading)
 	{
 		ServerReload();
+		HandleReload();
+		bLocalIsReloading = true;
 	}
 }
 
@@ -807,7 +814,7 @@ void UCombatComponent::OnRep_CombatState()
 	switch (CombatState)
 	{
 	case ECombatState::ECS_Reloading:
-		HandleReload();
+		if (Character && !Character->IsLocallyControlled()) HandleReload();
 		break;
 	case ECombatState::ECS_Unoccupied:
 		if (bFireButtonPressed)
