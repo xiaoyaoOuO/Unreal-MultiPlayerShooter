@@ -95,18 +95,19 @@ FVector AShotgunWeapon::TraceEndWithScatter(const FVector& StartLocation, const 
 	return RandomPoint;
 }
 
-void AShotgunWeapon::OnRep_AmmoAmount()
+void AShotgunWeapon::Client_UpdateAddAmmo(int32 Amount)
 {
-	Super::OnRep_AmmoAmount();
+	Super::Client_UpdateAddAmmo(Amount);
 
 	if (IsFull())
 	{
-		if (BlasterPlayerCharacter)
+		if (ABlasterCharacter* Character = Cast<ABlasterCharacter>(GetOwner()))
 		{
-			BlasterPlayerCharacter->JumpToShotgunEnd();
+			Character->JumpToShotgunEnd();
 		}
 	}
 }
+
 
 void AShotgunWeapon::GetScatterEndLocations(TArray<FVector_NetQuantize>& HitTargets, const FVector& HitTarget)
 {

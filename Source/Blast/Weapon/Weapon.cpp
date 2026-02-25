@@ -78,10 +78,6 @@ void AWeapon::OnRep_Owner()
 	}
 }
 
-void AWeapon::OnRep_AmmoAmount()
-{
-	UpdateAmmoAmountHUD();
-}
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                               UPrimitiveComponent* OtherComponent, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -122,13 +118,6 @@ void AWeapon::SetDepthRender(bool bEnable)
 	}
 }
 
-void AWeapon::SpendAmmo()
-{
-	AmmoAmount = FMath::Clamp(AmmoAmount - 1, 0, MagCapacity);
-
-	UpdateAmmoAmountHUD();
-}
-
 
 // Called every frame
 void AWeapon::Tick(const float DeltaTime)
@@ -137,11 +126,43 @@ void AWeapon::Tick(const float DeltaTime)
 	
 }
 
+void AWeapon::Client_UpdateAddAmmo_Implementation(int32 Amount)
+{
+	AmmoAmount = Amount;
+	UpdateAmmoAmountHUD();
+}
+
+void AWeapon::Client_UpdateAmmo_Implementation(int32 Amount)
+{
+	if (HasAuthority()) return;	//服务器不执行
+	AmmoAmount = Amount;
+	AmmoSequence--;
+	AmmoAmount -= AmmoSequence;
+	UpdateAmmoAmountHUD();
+}
+
+void AWeapon::SpendAmmo()
+{
+	AmmoAmount = FMath::Clamp(AmmoAmount - 1, 0, MagCapacity);
+
+	UpdateAmmoAmountHUD();
+
+	if (HasAuthority())
+	{
+		Client_UpdateAmmo(AmmoAmount);
+	}else
+	{
+		AmmoSequence ++;
+	}
+}
+
 void AWeapon::AddAmmo(int32 Amount)
 {
 	AmmoAmount = FMath::Clamp(AmmoAmount + Amount, 0, MagCapacity);
 
 	UpdateAmmoAmountHUD();
+
+	Client_UpdateAddAmmo(AmmoAmount);
 }
 
 void AWeapon::ShowPickUpWidget(const bool bShowPickupWidget) const
@@ -242,7 +263,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
-	DOREPLIFETIME(AWeapon, AmmoAmount);
 }
 
 FVector AWeapon::AmmoSpawnLocation() const

@@ -19,7 +19,7 @@ public:
 
 protected:
 	virtual FVector TraceEndWithScatter(const FVector& StartLocation,const FVector& HitTarget) override;
-	virtual void OnRep_AmmoAmount() override;
+	virtual void Client_UpdateAddAmmo(int32 Amount) override;
 
 private:
 	UPROPERTY(EditAnywhere,Category="Weapon")

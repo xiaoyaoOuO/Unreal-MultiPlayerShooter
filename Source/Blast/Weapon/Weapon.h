@@ -44,10 +44,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void OnRep_Owner() override;
-
-	UFUNCTION()
-	virtual void OnRep_AmmoAmount();
-
+	
 	UFUNCTION()
 	virtual void OnSphereOverlap(
 		UPrimitiveComponent* OverlappedComponent,
@@ -65,6 +62,14 @@ protected:
 		UPrimitiveComponent* OtherComponent,
 		int OtherBodyIndex
 	);
+
+	UFUNCTION(Client, Reliable)
+	virtual void Client_UpdateAmmo(int32 Amount);
+
+	UFUNCTION(Client, Reliable)
+	virtual void Client_UpdateAddAmmo(int32 Amount);
+
+	int32 AmmoSequence = 0;	//用于客户端预测，防止网络延迟导致的UI更新错误
 
 	void SpendAmmo();
 
@@ -177,7 +182,7 @@ public:
 	bool bShouldDestroy = false;
 
 private:
-	UPROPERTY(EditAnywhere,ReplicatedUsing = OnRep_AmmoAmount,Category="Weapon")
+	UPROPERTY(EditAnywhere,Category="Weapon")
 	int32 AmmoAmount;
 
 	UPROPERTY(EditAnywhere,Replicated,Category="Weapon")

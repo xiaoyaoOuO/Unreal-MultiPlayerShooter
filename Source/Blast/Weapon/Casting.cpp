@@ -12,6 +12,7 @@ ACasting::ACasting()
 
 	CastingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CastingMesh"));
 	CastingMesh->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
+	CastingMesh->SetCollisionResponseToChannel(ECC_Pawn,ECR_Ignore);
 	CastingMesh->SetEnableGravity(true);
 	CastingMesh->SetSimulatePhysics(true);
 	CastingMesh->SetNotifyRigidBodyCollision(true);

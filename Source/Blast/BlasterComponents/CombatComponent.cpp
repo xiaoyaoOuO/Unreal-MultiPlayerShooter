@@ -539,6 +539,14 @@ void UCombatComponent::FireShotgun()
 	ServerShotgunFire(HitTargets);
 }
 
+void UCombatComponent::OnRep_bAiming()
+{
+	if (Character && Character->IsLocallyControlled())
+	{
+		bAiming = bAimButtonPressed;
+	}
+}
+
 void UCombatComponent::StartFireDelay()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
@@ -697,6 +705,7 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	{
 		Character->ShowSniperScopeWidget(bIsAiming);
 	}
+	if (Character && Character->IsLocallyControlled()) bAimButtonPressed = bIsAiming;
 }
 
 void UCombatComponent::FireWeaponByType()

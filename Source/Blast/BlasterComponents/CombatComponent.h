@@ -131,8 +131,13 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_SecondaryWeapon)
 	AWeapon* SecondaryWeapon;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_bAiming)
 	bool bAiming;
+
+	bool bAimButtonPressed;
+
+	UFUNCTION()
+	void OnRep_bAiming();
 
 	UPROPERTY(EditAnywhere)
 	float BaseMoveSpeed;
