@@ -5,6 +5,7 @@
 #include "Blast/Blast.h"
 #include "Blast/BlasterComponents/BuffComponent.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
+#include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "Blast/Weapon/Weapon.h"
@@ -48,6 +49,8 @@ ABlasterCharacter::ABlasterCharacter()
 	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	BuffComponent->SetIsReplicated(true);
 
+	LagCompensationComponent = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensationComponent"));
+
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
@@ -68,6 +71,51 @@ ABlasterCharacter::ABlasterCharacter()
 	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrenadeMesh"));
 	GrenadeMesh->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
 	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Head = CreateDefaultSubobject<UBoxComponent>(TEXT("Head"));
+	Head->SetupAttachment(GetMesh(), FName("Head"));
+	Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("Head"),Head);
+
+	LeftArm_Top = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftArm_Top"));
+	LeftArm_Top->SetupAttachment(GetMesh(), FName("LeftArm_Top"));
+	LeftArm_Top->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("LeftArm_Top"),LeftArm_Top);
+
+	LeftArm_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftArm_Bottom"));
+	LeftArm_Bottom->SetupAttachment(GetMesh(), FName("LeftArm_Bottom"));
+	LeftArm_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("LeftArm_Bottom"), LeftArm_Bottom);
+
+	RightArm_Top = CreateDefaultSubobject<UBoxComponent>(TEXT("RightArm_Top"));
+	RightArm_Top->SetupAttachment(GetMesh(), FName("RightArm_Top"));
+	RightArm_Top->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("RightArm_Top"), RightArm_Top);
+
+	RightArm_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("RightArm_Bottom"));
+	RightArm_Bottom->SetupAttachment(GetMesh(), FName("RightArm_Bottom"));
+	RightArm_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("RightArm_Bottom"), RightArm_Bottom);
+
+	LeftLeg_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftLeg_Bottom"));
+	LeftLeg_Bottom->SetupAttachment(GetMesh(), FName("LeftLeg_Bottom"));
+	LeftLeg_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("LeftLeg_Bottom"), LeftLeg_Bottom);
+
+	RightLeg_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("RightLeg_Bottom"));
+	RightLeg_Bottom->SetupAttachment(GetMesh(), FName("RightLeg_Bottom"));
+	RightLeg_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("RightLeg_Bottom"), RightLeg_Bottom);
+
+	Body = CreateDefaultSubobject<UBoxComponent>(TEXT("Body"));
+	Body->SetupAttachment(GetMesh(), FName("Body"));
+	Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("Body"), Body);
+
+	BackBag = CreateDefaultSubobject<UBoxComponent>(TEXT("BackBag"));
+	BackBag->SetupAttachment(GetMesh(), FName("BackBag"));
+	BackBag->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitBoxComponentMap.Add(FName("BackBag"), BackBag);
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
@@ -215,6 +263,14 @@ void ABlasterCharacter::PostInitializeComponents()
 		{
 			BuffComponent->InitDefaultSpeed(CharacterMovementComponent->MaxWalkSpeed,CharacterMovementComponent->MaxWalkSpeedCrouched);
 			BuffComponent->InitDefaultJump(CharacterMovementComponent->JumpZVelocity);
+		}
+	}
+	if (LagCompensationComponent)
+	{
+		LagCompensationComponent->Character = this;
+		if (ABlasterPlayerController* PlayerController = Cast<ABlasterPlayerController>(Controller))
+		{
+			LagCompensationComponent->Controller = PlayerController;
 		}
 	}
 }
@@ -804,6 +860,5 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	HideCharacterWhenCameraClose();
 	PollInit();
 }
-
 
 

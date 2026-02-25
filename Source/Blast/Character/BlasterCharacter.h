@@ -8,6 +8,7 @@
 #include "Blast/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
 #include "Blast/TurningInPlace/CombatState.h"
+#include "Components/BoxComponent.h"
 #include "BlasterCharacter.generated.h"
 
 
@@ -48,6 +49,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UBuffComponent* BuffComponent;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
+	class ULagCompensationComponent* LagCompensationComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -217,6 +221,39 @@ protected:
      *AActor*))，
 	*/
 	void ReceiveDamage(AActor* DamagedActor,float Damage,const UDamageType* DamageType,AController* InstigatedBy,AActor* DamageCauser);
+
+public:
+	//角色碰撞盒
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* Head;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* LeftArm_Top;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* LeftArm_Bottom;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* RightArm_Top;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* RightArm_Bottom;
+	
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* LeftLeg_Bottom;
+	
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* RightLeg_Bottom;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* Body;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* BackBag;
+
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitBoxComponentMap;
+	
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
