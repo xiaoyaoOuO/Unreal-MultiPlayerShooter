@@ -3,6 +3,7 @@
 
 #include "ShotgunWeapon.h"
 
+#include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -51,7 +52,7 @@ void AShotgunWeapon::ShotgunFire(const TArray<FVector_NetQuantize>& HitTargets)
 			BeamLocation = HitResult.ImpactPoint;
 			if (ABlasterCharacter* HitActor = Cast<ABlasterCharacter>(HitResult.GetActor()))
 			{
-				if (HasAuthority())
+				if (HasAuthority() && !bUseServerSideRewind)
 				{
 					if (HitMap.Contains(HitActor))
 					{
@@ -74,10 +75,28 @@ void AShotgunWeapon::ShotgunFire(const TArray<FVector_NetQuantize>& HitTargets)
 	{
 		ABlasterCharacter* HitActor = HitPair.Key;
 		int32 PelletHitCount = HitPair.Value;
-		if (HitActor && HasAuthority() && Controller)
+		if (HitActor && HasAuthority() && Controller && !bUseServerSideRewind)
 		{
 			float TotalDamage = Damage * PelletHitCount;
 			UGameplayStatics::ApplyDamage(HitActor,TotalDamage,Controller,this,UDamageType::StaticClass());
+		}
+	}
+
+	if (!HasAuthority() && bUseServerSideRewind && !HitMap.IsEmpty())
+	{
+		TArray<ABlasterCharacter*> HitActors;
+		for (const auto &HitPair : HitMap)
+		{
+			HitActors.Add(HitPair.Key);
+		}
+		if (ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner()))
+		{
+			ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
+			ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
+			if (OwnerLagCompensation && OwnerController)
+			{
+				OwnerLagCompensation->Server_ShotgunScoreRequest(StartLocation,HitTargets,HitActors,OwnerController,this,OwnerController->GetServerTime() - OwnerController->SoloTripTime);
+			}
 		}
 	}
 }

@@ -148,7 +148,8 @@ void ABlasterPlayerController::Client_ReportServerTime_Implementation(float Time
 {
 	double CurrentTime = GetWorld()->GetTimeSeconds();
 	double RPCDelay = CurrentTime - TimeOfClientRequest;
-	double CurrentServerTime = TimeServerReceivedClientRequest + RPCDelay * 0.5f;
+	SoloTripTime = RPCDelay * 0.5f;
+	double CurrentServerTime = TimeServerReceivedClientRequest + SoloTripTime * 0.5f;
 	ServerClientDelta = CurrentServerTime - CurrentTime;
 }
 

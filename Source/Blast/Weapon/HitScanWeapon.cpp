@@ -3,6 +3,7 @@
 
 #include "HitScanWeapon.h"
 
+#include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -67,11 +68,26 @@ void AHitScanWeapon::WeaponHit(FHitResult& HitResult,const UWorld* World,const F
 	{
 		BeamLocation = HitResult.ImpactPoint;
 		AController* Controller = GetOwner() ? GetOwner()->GetInstigatorController() : nullptr;
-		if (AActor* HitActor = HitResult.GetActor())
+		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(HitResult.GetActor());
+		if (HitCharacter && Controller)
 		{
-			if (HasAuthority() && Controller)
+			if (HasAuthority() && !bUseServerSideRewind)
 			{
-				UGameplayStatics::ApplyDamage(HitActor,Damage,Controller,this,UDamageType::StaticClass());
+				UGameplayStatics::ApplyDamage(HitCharacter,Damage,Controller,this,UDamageType::StaticClass());
+			}
+			if (!HasAuthority() && bUseServerSideRewind)
+			{
+				ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
+				if (OwnerCharacter)
+				{
+					ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
+					ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
+					if (OwnerLagCompensation && OwnerController)
+					{
+						float ServerHitTime = OwnerController->GetServerTime() - OwnerController->SoloTripTime;
+						OwnerLagCompensation->Server_ScoreRequest(StartLocation,EndLocation,HitCharacter,OwnerController,this,ServerHitTime);
+					}
+				}
 			}
 		}
 

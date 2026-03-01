@@ -4,21 +4,37 @@
 #include "LobbyGameMode.h"
 
 #include "GameFramework/GameStateBase.h"
+#include "TimerManager.h"
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	int32 PlayerNums = GameState.Get()->PlayerArray.Num();
-	if (PlayerNums >= 1)
+	if (bTravelInProgress || !GameState)
 	{
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			FString Travel_Map = "/Game/Maps/BlasterMap";
-			Travel_Map += "?listen";
-			bUseSeamlessTravel = true;
-			World->ServerTravel(Travel_Map);
-		}
+		return;
 	}
+
+	const int32 PlayerNums = GameState->PlayerArray.Num();
+	if (PlayerNums >= 2)
+	{
+		bTravelInProgress = true;
+		HandleLobbyTravel();
+	}
+}
+
+void ALobbyGameMode::HandleLobbyTravel()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		bTravelInProgress = false;
+		return;
+	}
+
+	GetWorldTimerManager().ClearTimer(TravelTimerHandle);
+
+	const FString TravelMap = TEXT("/Game/Maps/BlasterMap?listen");
+	bUseSeamlessTravel = true;
+	World->ServerTravel(TravelMap);
 }

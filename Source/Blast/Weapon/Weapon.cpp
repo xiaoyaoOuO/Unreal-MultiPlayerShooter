@@ -310,6 +310,11 @@ void AWeapon::Dropped()
 	SetOwner(nullptr);
 }
 
+int AWeapon::GetDamage()
+{
+	return 0;
+}
+
 USkeletalMeshComponent* AWeapon::Get_WeaponMesh() const
 {
 	return WeaponMesh;

@@ -71,6 +71,8 @@ UCLASS()
 class BLAST_API ABlasterPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+public:
+	float SoloTripTime; //一次PRC发送的时间，武器开火调用RPC需要在服务端做开火校验，但是传入的HitTime是客户端的时间，所以在服务器校验时需要将客户端的HitTime转换为服务器时间，SoloTripTime就是这个转换的时间
 
 private:
 	UPROPERTY()
@@ -142,8 +144,8 @@ protected:
 	UFUNCTION(Client,Reliable)
 	void Client_ReportServerMatchState(const FServerMatchState& ServerMatchState);
 
-	float GetServerTime();
 public:
+	float GetServerTime();
 	void SetBlasterPlayerHealth(float Health,float MaxHealth);
 	void SetBlasterPlayerScore(float Score);
 	void SetBlasterPlayerDefeat(int32 Defeat);

@@ -15,5 +15,10 @@ class BLAST_API ALobbyGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
+
+private:
+	void HandleLobbyTravel();
+
+	bool bTravelInProgress = false;
+	FTimerHandle TravelTimerHandle;
 };

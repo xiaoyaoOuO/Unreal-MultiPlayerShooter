@@ -69,6 +69,17 @@ protected:
 	UPROPERTY()
 	UNiagaraComponent* TrailComponent;
 
+public:
+	/**
+	 * 用于预测
+	 */
+	bool bUseServerRewind;
+	FVector_NetQuantize TraceStart;
+	FVector_NetQuantize100 InitialVelocity;
+
+	UPROPERTY(EditAnywhere,Category="Projectile")
+	float InitialSpeed = 3500.f;
+	
 protected:
 	void BulletSpawnEffect();
 };

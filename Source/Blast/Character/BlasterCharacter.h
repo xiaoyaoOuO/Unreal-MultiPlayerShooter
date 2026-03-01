@@ -9,6 +9,7 @@
 #include "Components/TimelineComponent.h"
 #include "Blast/TurningInPlace/CombatState.h"
 #include "Components/BoxComponent.h"
+#include "Sound/SoundCue.h"
 #include "BlasterCharacter.generated.h"
 
 
@@ -293,4 +294,5 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const {return GrenadeMesh;}
 	FORCEINLINE UCombatComponent* GetCombatComponent() const {return CombatComponent;}
 	FORCEINLINE UBuffComponent* GetBuffComponent() const {return BuffComponent;}
+	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent() const {return LagCompensationComponent;}
 };

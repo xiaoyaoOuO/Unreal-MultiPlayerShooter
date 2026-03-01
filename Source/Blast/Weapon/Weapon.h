@@ -105,6 +105,7 @@ public:
 
 	virtual void Fire(const FVector& HitTarget);
 	virtual void Dropped();
+	virtual int GetDamage(); //不同武器伤害不同，子类重写
 
 	USkeletalMeshComponent* Get_WeaponMesh() const;
 
@@ -180,6 +181,10 @@ public:
 
 	//初始武器需要在角色死亡时销毁
 	bool bShouldDestroy = false;
+
+public:
+	UPROPERTY(EditAnywhere)
+	bool bUseServerSideRewind = false;
 
 private:
 	UPROPERTY(EditAnywhere,Category="Weapon")

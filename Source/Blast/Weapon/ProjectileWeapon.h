@@ -18,6 +18,9 @@ public:
 	UPROPERTY(EditAnywhere,Category="Weapon")
 	TSubclassOf<class AProjectile> ProjectileClass;
 
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	TSubclassOf<AProjectile> ServerProjectileClass;
+
 public:
 	virtual void Fire(const FVector& HitTarget) override;
 	virtual void BeginPlay() override;
