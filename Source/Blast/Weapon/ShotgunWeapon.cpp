@@ -3,6 +3,7 @@
 
 #include "ShotgunWeapon.h"
 
+#include "Blast/Blast.h"
 #include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
@@ -45,22 +46,19 @@ void AShotgunWeapon::ShotgunFire(const TArray<FVector_NetQuantize>& HitTargets)
 	for (const FVector_NetQuantize& HitTarget : HitTargets)
 	{
 		FVector EndLocation = StartLocation + (HitTarget - StartLocation) * 1.25f;
-		World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility);
+		World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_HitBox);
 		FVector BeamLocation = EndLocation;
 		if (HitResult.bBlockingHit)
 		{
 			BeamLocation = HitResult.ImpactPoint;
 			if (ABlasterCharacter* HitActor = Cast<ABlasterCharacter>(HitResult.GetActor()))
 			{
-				if (HasAuthority() && !bUseServerSideRewind)
+				if (HitMap.Contains(HitActor))
 				{
-					if (HitMap.Contains(HitActor))
-					{
-						HitMap[HitActor]++;
-					}else
-					{
-						HitMap.Add(HitActor,1);
-					}
+					HitMap[HitActor]++;
+				}else
+				{
+					HitMap.Add(HitActor,1);
 				}
 			}
 			if (HitParticle)
@@ -71,32 +69,34 @@ void AShotgunWeapon::ShotgunFire(const TArray<FVector_NetQuantize>& HitTargets)
 		FireEffect(StartLocation, BeamLocation);
 	}
 	AController* Controller = GetOwner() ? GetOwner()->GetInstigatorController() : nullptr;
-	for (const auto &HitPair : HitMap)
+	ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
+	if (OwnerCharacter == nullptr) return;
+	if (HasAuthority() && OwnerCharacter->IsLocallyControlled())
 	{
-		ABlasterCharacter* HitActor = HitPair.Key;
-		int32 PelletHitCount = HitPair.Value;
-		if (HitActor && HasAuthority() && Controller && !bUseServerSideRewind)
+		for (const auto &HitPair : HitMap)
 		{
-			float TotalDamage = Damage * PelletHitCount;
-			UGameplayStatics::ApplyDamage(HitActor,TotalDamage,Controller,this,UDamageType::StaticClass());
+			ABlasterCharacter* HitActor = HitPair.Key;
+			int32 PelletHitCount = HitPair.Value;
+			if (HitActor && Controller)
+			{
+				float TotalDamage = Damage * PelletHitCount;
+				UGameplayStatics::ApplyDamage(HitActor,TotalDamage,Controller,this,UDamageType::StaticClass());
+			}
 		}
 	}
-
-	if (!HasAuthority() && bUseServerSideRewind && !HitMap.IsEmpty())
+	if (!HasAuthority() && bUseServerSideRewind && !HitMap.IsEmpty() && OwnerCharacter->IsLocallyControlled())
 	{
 		TArray<ABlasterCharacter*> HitActors;
-		for (const auto &HitPair : HitMap)
+		for (auto HitPair : HitMap)
 		{
 			HitActors.Add(HitPair.Key);
 		}
-		if (ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner()))
+		ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
+		ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
+		if (OwnerLagCompensation && OwnerController)
 		{
-			ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
-			ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
-			if (OwnerLagCompensation && OwnerController)
-			{
-				OwnerLagCompensation->Server_ShotgunScoreRequest(StartLocation,HitTargets,HitActors,OwnerController,this,OwnerController->GetServerTime() - OwnerController->SoloTripTime);
-			}
+			UE_LOG(LogTemp,Warning,TEXT("Client_ShotgunScoreRequest"));
+			OwnerLagCompensation->Server_ShotgunScoreRequest(StartLocation,HitTargets,HitActors,OwnerController,this,OwnerController->GetServerTime() - OwnerController->SoloTripTime);
 		}
 	}
 }

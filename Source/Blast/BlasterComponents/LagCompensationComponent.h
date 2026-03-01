@@ -32,6 +32,11 @@ struct FFramePackage
 {
 	GENERATED_BODY()
 
+	FFramePackage()
+		: Time(0.f), HitCharacter(nullptr)
+	{
+	}
+
 	UPROPERTY()
 	float Time;
 
@@ -120,6 +125,14 @@ public:
 	*/
 	FShotgunServerSideRewindResult ShotgunServerRewind(float HitTime, const FVector_NetQuantize& TraceStart,const TArray<FVector_NetQuantize>& HitLocations,const TArray<ABlasterCharacter*>& HitCharacters);
 
+	/**
+	* @param HitTime 被击中时的服务器时间
+	* @param TraceStart 射线的起点
+	* @param InitialVelocity 初始速度
+	* @param HitCharacter 被击中的角色
+	*/
+	FServerSideRewindResult ProjectileServerRewind(float HitTime, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, const ABlasterCharacter* HitCharacter);
+	
 	FFramePackage FrameInterp(const FFramePackage& OldFrame,const FFramePackage& YoungFrame,float HitTime);
 
 	//根据HitTime找到对应的历史帧数据，如果没有完全匹配的帧数据，就插值计算出HitTime时的帧数据
@@ -128,14 +141,17 @@ public:
 	//及时命中确认，客户端和服务端同时进行碰撞检测，服务端根据客户端传来的HitLocation和TraceStart进行碰撞检测，如果服务端也检测到命中，就确认命中有效，否则无效
 	FServerSideRewindResult ConfirmHit(const FFramePackage& Package,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize& HitLocation,const ABlasterCharacter* HitCharacter);
 	
+	//散弹枪命中确认，客户端和服务端同时进行碰撞检测，服务端根据客户端传来的HitLocations和TraceStart进行碰撞检测，如果服务端也检测到命中，就确认命中有效，否则无效
+	FShotgunServerSideRewindResult ShotgunConfirmHit(TArray<FFramePackage>& Package,const FVector_NetQuantize& TraceStart,const TArray<FVector_NetQuantize>& HitLocations);
+
+	//子弹命中确认，客户端和服务端同时进行碰撞检测，服务端根据客户端传来的HitLocation和TraceStart进行碰撞检测，如果服务端也检测到命中，就确认命中有效，否则无效
+	FServerSideRewindResult ProjectileConfirmHit(const FFramePackage& Package,const FVector_NetQuantize& TraceStart,const FVector_NetQuantize100& InitialVelocity,const ABlasterCharacter* HitCharacter);
+
 	void AddShotgunHeadShot(FShotgunServerSideRewindResult& ShotgunServerSideRewindResult,
 	                        ABlasterCharacter* HitCharacter);
 	
 	void AddShotgunBodyShot(FShotgunServerSideRewindResult& ShotgunServerSideRewindResult,
 	                        ABlasterCharacter* HitCharacter);
-
-	//散弹枪命中确认，客户端和服务端同时进行碰撞检测，服务端根据客户端传来的HitLocations和TraceStart进行碰撞检测，如果服务端也检测到命中，就确认命中有效，否则无效
-	FShotgunServerSideRewindResult ShotgunConfirmHit(TArray<FFramePackage>& Package,const FVector_NetQuantize& TraceStart,const TArray<FVector_NetQuantize>& HitLocations);
 
 	//存储当前的Hitbox位置，用于后面的碰撞检测以及ResetCharacter的Hitbox位置
 	void CacheCharacterHitBox(const ABlasterCharacter* HitCharacter, FFramePackage& OutPackage);

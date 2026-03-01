@@ -3,6 +3,7 @@
 
 #include "LagCompensationComponent.h"
 
+#include "Blast/Blast.h"
 #include "Kismet/GameplayStatics.h"
 
 ULagCompensationComponent::ULagCompensationComponent()
@@ -108,11 +109,20 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunServerRewind(fl
                                                                               const TArray<ABlasterCharacter*>& HitCharacters)
 {
 	TArray<FFramePackage> FramePackages;
-	for (auto& HitCharacter : HitCharacters)
+	for (auto HitCharacter : HitCharacters)
 	{
+		if (!IsValid(HitCharacter)) continue;
 		FramePackages.Add(GetFrameToCheck(HitTime, HitCharacter));
 	}
 	return ShotgunConfirmHit(FramePackages, TraceStart, HitLocations);
+}
+
+FServerSideRewindResult ULagCompensationComponent::ProjectileServerRewind(float HitTime,
+	const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity,
+	const ABlasterCharacter* HitCharacter)
+{
+	FFramePackage FrameToCheck = GetFrameToCheck(HitTime, HitCharacter);
+	return ProjectileConfirmHit(FrameToCheck, TraceStart, InitialVelocity, HitCharacter);
 }
 
 FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFrame, const FFramePackage& YoungFrame,float HitTime)
@@ -121,6 +131,7 @@ FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFra
 	float TimeBetweenFrames = YoungFrame.Time - OldFrame.Time;
 	float LerpFactor = (HitTime - OldFrame.Time) / TimeBetweenFrames;
 	InterpFrame.Time = HitTime;
+	InterpFrame.HitCharacter = OldFrame.HitCharacter;
 	for (const auto& HitBox : OldFrame.HitBoxInfo)
 	{
 		FBoxInformation InterpBoxInfo;
@@ -137,6 +148,7 @@ FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFra
 FFramePackage ULagCompensationComponent::GetFrameToCheck(float HitTime, const ABlasterCharacter* HitCharacter)
 {
 	if (Character == nullptr) return FFramePackage();
+	if (!IsValid(HitCharacter)) return FFramePackage();
 	
 	ULagCompensationComponent* LagCompensationComponent = HitCharacter->GetLagCompensationComponent();
 	if (LagCompensationComponent == nullptr) return FFramePackage();
@@ -203,17 +215,30 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 	FVector HitEndLocation = TraceStart + (HitLocation - TraceStart) * 1.25f; //增加射线长度，防止射线过短无法击中
 	if (UWorld* World = GetWorld())
 	{
-		World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_Visibility);
+		World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_HitBox);
 		if (HitResult.bBlockingHit)
 		{
+			if (UBoxComponent* Box = Cast<UBoxComponent>(HitResult.GetComponent()))
+			{
+				DrawDebugBox(GetWorld(),
+					Box->GetComponentLocation(),
+					Box->GetScaledBoxExtent(),
+					FQuat(Box->GetComponentRotation()),
+					FColor::Green,
+					false,
+					5.f
+				);
+			}
+			Result.bConfirmed = true;
 			Result.bHeadShot = true;
 		}else
 		//如果没有击中头部，再检测身体其他部位
 		{
 			SetAllHitBoxCollision(HitCharacter, ECollisionEnabled::QueryOnly);
-			World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_Visibility);
+			World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_HitBox);
 			if (HitResult.bBlockingHit)
 			{
+				Result.bConfirmed = true;
 				Result.bHeadShot = false;
 			}
 		}
@@ -222,7 +247,6 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 	SetAllHitBoxCollision(HitCharacter, ECollisionEnabled::NoCollision);
 	SetCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
 	MoveHitBoxes(CurrentFrame, HitCharacter);
-	Result.bConfirmed = true;
 	return Result;
 }
 
@@ -254,8 +278,9 @@ FShotgunServerSideRewindResult ULagCompensationComponent:: ShotgunConfirmHit(TAr
 	FShotgunServerSideRewindResult ShotgunServerSideRewindResult{false};
 	TArray<FFramePackage> CharacterOriginPackages;
 	//对于每个可能被击中的角色，先把它们的Hitbox位置缓存起来，然后移动Hitbox到被击中时的位置，最后进行碰撞检测，检测过后再重置Hitbox位置
-	for (auto& Package : Packages)
+	for (const auto& Package : Packages)
 	{
+		if (!IsValid(Package.HitCharacter)) continue;
 		FFramePackage CurrentFrame;
 		CacheCharacterHitBox(Package.HitCharacter,CurrentFrame);
 		CharacterOriginPackages.Emplace(CurrentFrame);
@@ -270,18 +295,20 @@ FShotgunServerSideRewindResult ULagCompensationComponent:: ShotgunConfirmHit(TAr
 		FVector HitEndLocation = TraceStart + (HitLocation - TraceStart) * 1.25f; //增加射线长度，防止射线过短无法击中
 		if (World)
 		{
-			World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_Visibility);
+			World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_HitBox);
 			if (HitResult.bBlockingHit)
 			{
 				ShotgunServerSideRewindResult.bConfirmed = true;
 				if (ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(HitResult.GetActor()))
 				{
 					//根据命中的Hitbox判断是爆头还是身体其他部位被击中，并记录每个角色被击中的次数，后面根据次数来计算伤害
-					if (HitCharacter->HitBoxComponentMap.Contains("Head") && HitCharacter->HitBoxComponentMap["Head"] == HitResult.Component)
+					if (HitCharacter->HitBoxComponentMap.Contains("Head") && HitCharacter->HitBoxComponentMap["Head"] == HitResult.GetComponent())
 					{
+						UE_LOG(LogTemp,Warning,TEXT("Server_ScoreRequest HeadShot"));
 						AddShotgunHeadShot(ShotgunServerSideRewindResult, HitCharacter);
 					}else
 					{
+						UE_LOG(LogTemp,Warning,TEXT("Server_ScoreRequest BodyShot"));
 						AddShotgunBodyShot(ShotgunServerSideRewindResult, HitCharacter);
 					}
 				}
@@ -295,15 +322,67 @@ FShotgunServerSideRewindResult ULagCompensationComponent:: ShotgunConfirmHit(TAr
 		SetCharacterMeshCollision(OriginPackage.HitCharacter, ECollisionEnabled::Type::QueryAndPhysics);
 		SetAllHitBoxCollision(OriginPackage.HitCharacter, ECollisionEnabled::NoCollision);
 	}
+	ShotgunServerSideRewindResult.bConfirmed = true;
 	return ShotgunServerSideRewindResult;
+}
+
+FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FFramePackage& Package,
+	const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity,
+	const ABlasterCharacter* HitCharacter)
+{
+	FServerSideRewindResult Result{false, false};
+	if (HitCharacter == nullptr) return Result;
+	
+	FFramePackage CurrentFrame;
+	CacheCharacterHitBox(HitCharacter,CurrentFrame);
+	MoveHitBoxes(Package, HitCharacter);
+	SetCharacterMeshCollision(HitCharacter, ECollisionEnabled::NoCollision); //关闭角色Mesh的碰撞，防止射线检测时被Mesh挡住,后面一定要重置
+	SetHeadHitBoxCollision(HitCharacter, ECollisionEnabled::QueryOnly); //先检测头部，如果没有击中再检测身体其他部位
+	
+	FPredictProjectilePathParams PredictProjectilePathParams;
+	PredictProjectilePathParams.StartLocation = TraceStart;
+	PredictProjectilePathParams.LaunchVelocity = InitialVelocity;
+	PredictProjectilePathParams.bTraceWithCollision = true;
+	PredictProjectilePathParams.TraceChannel = ECC_HitBox;
+	PredictProjectilePathParams.SimFrequency = 15.f;
+	PredictProjectilePathParams.MaxSimTime = MaxRecordTime;
+	PredictProjectilePathParams.ProjectileRadius = 5.f;
+	PredictProjectilePathParams.ActorsToIgnore.Add(GetOwner());
+	PredictProjectilePathParams.DrawDebugTime = 5.f;
+	PredictProjectilePathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+	
+	
+	FPredictProjectilePathResult PredictProjectilePathResult;
+	UGameplayStatics::PredictProjectilePath(this,PredictProjectilePathParams,PredictProjectilePathResult);
+
+	if (PredictProjectilePathResult.HitResult.bBlockingHit)
+	{
+		Result.bHeadShot = true;
+		Result.bConfirmed = true;
+	}else
+	{
+		SetAllHitBoxCollision(HitCharacter,ECollisionEnabled::Type::QueryOnly);
+		UGameplayStatics::PredictProjectilePath(this,PredictProjectilePathParams,PredictProjectilePathResult);
+		if (PredictProjectilePathResult.HitResult.bBlockingHit)
+		{
+			Result.bHeadShot = false;
+			Result.bConfirmed = true;
+		}
+	}
+	//检测过后，重置所有被改变的属性
+	SetAllHitBoxCollision(HitCharacter, ECollisionEnabled::NoCollision);
+	SetCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+	MoveHitBoxes(CurrentFrame, HitCharacter);
+	return Result;
 }
 
 void ULagCompensationComponent::CacheCharacterHitBox(const ABlasterCharacter* HitCharacter, FFramePackage& OutPackage)
 {
-	if (HitCharacter)
+	if (IsValid(HitCharacter))
 	{
 		for (const auto& HitBox : HitCharacter->HitBoxComponentMap)
 		{
+			if (HitBox.Value == nullptr) continue;
 			FBoxInformation CurrentBoxInfo;
 			CurrentBoxInfo.BoxExtent = HitBox.Value->GetScaledBoxExtent();
 			CurrentBoxInfo.BoxLocation = HitBox.Value->GetComponentLocation();
@@ -334,7 +413,7 @@ void ULagCompensationComponent::SetAllHitBoxCollision(const ABlasterCharacter* H
 	{
 		if (HitBoxComponent.Value == nullptr) continue;
 		HitBoxComponent.Value->SetCollisionEnabled(CollisionEnabled);
-		HitBoxComponent.Value->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		HitBoxComponent.Value->SetCollisionResponseToChannel(ECC_HitBox, ECR_Block);
 	}
 }
 
@@ -345,7 +424,7 @@ void ULagCompensationComponent::SetHeadHitBoxCollision(const ABlasterCharacter* 
 	if (HitCharacter->HitBoxComponentMap.Contains("Head") && HitCharacter->HitBoxComponentMap["Head"])
 	{
 		HitCharacter->HitBoxComponentMap["Head"]->SetCollisionEnabled(CollisionEnabled);
-		HitCharacter->HitBoxComponentMap["Head"]->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		HitCharacter->HitBoxComponentMap["Head"]->SetCollisionResponseToChannel(ECC_HitBox, ECR_Block);
 	}
 }
 

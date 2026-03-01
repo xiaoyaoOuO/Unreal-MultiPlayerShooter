@@ -69,24 +69,21 @@ void AHitScanWeapon::WeaponHit(FHitResult& HitResult,const UWorld* World,const F
 		BeamLocation = HitResult.ImpactPoint;
 		AController* Controller = GetOwner() ? GetOwner()->GetInstigatorController() : nullptr;
 		ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(HitResult.GetActor());
-		if (HitCharacter && Controller)
+		ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
+		if (HitCharacter && Controller && OwnerCharacter)
 		{
-			if (HasAuthority() && !bUseServerSideRewind)
+			if (HasAuthority() && OwnerCharacter->IsLocallyControlled())
 			{
 				UGameplayStatics::ApplyDamage(HitCharacter,Damage,Controller,this,UDamageType::StaticClass());
 			}
-			if (!HasAuthority() && bUseServerSideRewind)
+			if (!HasAuthority() && bUseServerSideRewind && OwnerCharacter->IsLocallyControlled())
 			{
-				ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner());
-				if (OwnerCharacter)
+				ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
+				ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
+				if (OwnerLagCompensation && OwnerController)
 				{
-					ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
-					ULagCompensationComponent* OwnerLagCompensation = OwnerCharacter->GetLagCompensationComponent();
-					if (OwnerLagCompensation && OwnerController)
-					{
-						float ServerHitTime = OwnerController->GetServerTime() - OwnerController->SoloTripTime;
-						OwnerLagCompensation->Server_ScoreRequest(StartLocation,EndLocation,HitCharacter,OwnerController,this,ServerHitTime);
-					}
+					float ServerHitTime = OwnerController->GetServerTime() - OwnerController->SoloTripTime;
+					OwnerLagCompensation->Server_ScoreRequest(StartLocation,EndLocation,HitCharacter,OwnerController,this,ServerHitTime);
 				}
 			}
 		}

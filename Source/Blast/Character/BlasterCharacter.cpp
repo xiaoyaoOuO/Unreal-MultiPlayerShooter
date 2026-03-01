@@ -74,48 +74,50 @@ ABlasterCharacter::ABlasterCharacter()
 
 	Head = CreateDefaultSubobject<UBoxComponent>(TEXT("Head"));
 	Head->SetupAttachment(GetMesh(), FName("Head"));
-	Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("Head"),Head);
 
 	LeftArm_Top = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftArm_Top"));
 	LeftArm_Top->SetupAttachment(GetMesh(), FName("LeftArm_Top"));
-	LeftArm_Top->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("LeftArm_Top"),LeftArm_Top);
 
 	LeftArm_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftArm_Bottom"));
 	LeftArm_Bottom->SetupAttachment(GetMesh(), FName("LeftArm_Bottom"));
-	LeftArm_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("LeftArm_Bottom"), LeftArm_Bottom);
 
 	RightArm_Top = CreateDefaultSubobject<UBoxComponent>(TEXT("RightArm_Top"));
 	RightArm_Top->SetupAttachment(GetMesh(), FName("RightArm_Top"));
-	RightArm_Top->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("RightArm_Top"), RightArm_Top);
 
 	RightArm_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("RightArm_Bottom"));
 	RightArm_Bottom->SetupAttachment(GetMesh(), FName("RightArm_Bottom"));
-	RightArm_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("RightArm_Bottom"), RightArm_Bottom);
 
 	LeftLeg_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftLeg_Bottom"));
 	LeftLeg_Bottom->SetupAttachment(GetMesh(), FName("LeftLeg_Bottom"));
-	LeftLeg_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("LeftLeg_Bottom"), LeftLeg_Bottom);
 
 	RightLeg_Bottom = CreateDefaultSubobject<UBoxComponent>(TEXT("RightLeg_Bottom"));
 	RightLeg_Bottom->SetupAttachment(GetMesh(), FName("RightLeg_Bottom"));
-	RightLeg_Bottom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("RightLeg_Bottom"), RightLeg_Bottom);
 
 	Body = CreateDefaultSubobject<UBoxComponent>(TEXT("Body"));
 	Body->SetupAttachment(GetMesh(), FName("Body"));
-	Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("Body"), Body);
 
 	BackBag = CreateDefaultSubobject<UBoxComponent>(TEXT("BackBag"));
 	BackBag->SetupAttachment(GetMesh(), FName("BackBag"));
-	BackBag->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitBoxComponentMap.Add(FName("BackBag"), BackBag);
+
+	for (auto& HitBox : HitBoxComponentMap)
+	{
+		if (HitBox.Value)
+		{
+			HitBox.Value->SetCollisionObjectType(ECC_HitBox);
+			HitBox.Value->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			HitBox.Value->SetCollisionResponseToAllChannels(ECR_Ignore);
+			HitBox.Value->SetCollisionResponseToChannel(ECC_HitBox, ECR_Block);
+		}
+	}
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
