@@ -24,6 +24,7 @@ UCombatComponent::UCombatComponent()
 	AimingMoveSpeed = 400.f;
 	bCanFire = true;
 	bLocalIsReloading = false;
+	bLocalSwapping = false;
 }
 
 void UCombatComponent::LocalFire(const FVector_NetQuantize& HitTarget)
@@ -116,6 +117,11 @@ void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_
 {
 	if (Character == nullptr || Character->IsLocallyControlled()) return;
 	LocalFireShotgun(HitTargets);
+}
+
+void UCombatComponent::Server_SwapWeapon_Implementation()
+{
+	HandleSwapWeapon();
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -337,21 +343,13 @@ void UCombatComponent::OnGrenadeLaunch()
 	}
 }
 
-bool UCombatComponent::CanSwapWeapon()
-{
-	return EquippedWeapon && SecondaryWeapon && CombatState == ECombatState::ECS_Unoccupied;
-}
-
-void UCombatComponent::SwapWeapon()
+void UCombatComponent::OnSwapWeaponAttach()
 {
 	AWeapon* TempWeapon = EquippedWeapon;
 	EquippedWeapon = SecondaryWeapon;
 	SecondaryWeapon = TempWeapon;
-
-
-	/*
-	 * 处理主武器
-	 */
+	
+	//处理主武器
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	AttachWeaponToRightHand(EquippedWeapon);
 	EquippedWeapon->SetOwner(Character);
@@ -376,9 +374,7 @@ void UCombatComponent::SwapWeapon()
 	}
 	EquippedWeapon->UpdateAmmoAmountHUD();
 
-	/*
-	 * 处理副武器
-	 */
+	//处理副武器 
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Secondary);
 	AttachWeaponToBackBag(SecondaryWeapon);
 	SecondaryWeapon->SetOwner(Character);
@@ -389,6 +385,36 @@ void UCombatComponent::SwapWeapon()
 			SecondaryWeapon->EquippedSound,
 			Character->GetActorLocation()
 		);
+	}
+}
+
+void UCombatComponent::OnSwapWeaponFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	bLocalSwapping = false;
+}
+
+bool UCombatComponent::CanSwapWeapon()
+{
+	return EquippedWeapon && SecondaryWeapon && CombatState == ECombatState::ECS_Unoccupied;
+}
+
+void UCombatComponent::SwapWeapon()
+{
+	HandleSwapWeapon();
+	if (Character && !Character->HasAuthority())
+	{
+		Server_SwapWeapon();
+	}
+}
+
+void UCombatComponent::HandleSwapWeapon()
+{
+	CombatState = ECombatState::ECS_SwapWeapon;
+	if (Character)
+	{
+		Character->PlaySwapWeaponMontage();
+		bLocalSwapping = true;
 	}
 }
 
@@ -828,6 +854,12 @@ void UCombatComponent::OnRep_CombatState()
 			Character->PlayGrenadeMontage();
 			Character->SetGrenadeVisibility(true);
 			PutWeaponToBack();
+		}
+		break;
+	case ECombatState::ECS_SwapWeapon:
+		if (Character && !Character->IsLocallyControlled())
+		{
+			Character->PlaySwapWeaponMontage();
 		}
 		break;
 	default:

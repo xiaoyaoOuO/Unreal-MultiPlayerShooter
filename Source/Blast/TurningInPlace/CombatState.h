@@ -6,6 +6,7 @@ enum  class ECombatState : uint8
 	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECS_Reloading  UMETA(DisplayName = "Reloading"),
 	ECS_ThrowingGrenade UMETA(DisplayName = "ThrowingGrenade"),
+	ECS_SwapWeapon UMETA(DisplayName = "SwapWeapon"),
 
 	ECS_DefaultMax UMETA(DisplayName = "DefaultMAX")
 };

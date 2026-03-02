@@ -128,14 +128,6 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
-void ABlasterCharacter::ServerSwapWeaponButtonPressed_Implementation()
-{
-	if (CombatComponent)
-	{
-		CombatComponent->SwapWeapon();
-	}
-}
-
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (IsValid(LastWeapon))
@@ -547,7 +539,7 @@ void ABlasterCharacter::SwapWeaponButtonPressed()
 {
 	if (CombatComponent && CombatComponent->CanSwapWeapon())
 	{
-		ServerSwapWeaponButtonPressed();
+		CombatComponent->SwapWeapon();
 	}
 }
 
@@ -654,12 +646,23 @@ void ABlasterCharacter::PlayReloadMontage()
 
 void ABlasterCharacter::PlayGrenadeMontage()
 {
-	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr) return;
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr || GrenadeTossMontage == nullptr) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(GrenadeTossMontage);
+	}
+}
+
+void ABlasterCharacter::PlaySwapWeaponMontage()
+{
+	if (CombatComponent == nullptr || CombatComponent->EquippedWeapon == nullptr || SwapWeaponMontage == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(SwapWeaponMontage);
 	}
 }
 

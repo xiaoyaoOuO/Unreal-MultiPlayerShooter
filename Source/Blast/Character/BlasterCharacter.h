@@ -31,6 +31,7 @@ public:
 	void PlayElimMontage();
 	void PlayReloadMontage();
 	void PlayGrenadeMontage();
+	void PlaySwapWeaponMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere , Category= Camera)
@@ -65,9 +66,6 @@ private:
 
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
-
-	UFUNCTION(Server,Reliable)
-	void ServerSwapWeaponButtonPressed();
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
@@ -149,6 +147,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* GrenadeTossMontage;
+
+	UPROPERTY(EditAnywhere,Category=Combat)
+	UAnimMontage* SwapWeaponMontage;
 
 
 	/*

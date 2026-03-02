@@ -60,6 +60,9 @@ public:
 	void Server_GrenadeToss();
 
 	UFUNCTION(Server, Reliable)
+	void Server_SwapWeapon();
+
+	UFUNCTION(Server, Reliable)
 	void Server_SpawnGrenade(const FVector_NetQuantize HitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
@@ -85,9 +88,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnGrenadeLaunch();
 
+	UFUNCTION(BlueprintCallable)
+	void OnSwapWeaponAttach();
+
+	UFUNCTION(BlueprintCallable)
+	void OnSwapWeaponFinished();
+
 	bool CanSwapWeapon();
 
 	void SwapWeapon();
+
+	void HandleSwapWeapon();
 	
 	FORCEINLINE ECombatState Get_CombatState() const {return CombatState;}
 protected:
@@ -148,6 +159,8 @@ public:
 	bool bFireButtonPressed;
 
 	bool bLocalIsReloading = false; //本地是否使用IK调整手臂位置，服务端不使用，模拟代理根据CombatState决定是否使用
+	
+	bool bLocalSwapping = false; //本地用于IK控制，提前预测动作
 
 	FVector HitTargetPoint;
 

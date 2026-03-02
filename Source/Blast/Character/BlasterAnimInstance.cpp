@@ -34,7 +34,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bUseFABRIK = BlasterCharacter->Get_CombatState() == ECombatState::ECS_Unoccupied;
 	if (BlasterCharacter->IsLocallyControlled() && BlasterCharacter->GetCombatComponent() != nullptr)
 	{
-		bUseFABRIK = !BlasterCharacter->GetCombatComponent()->bLocalIsReloading;  //本地预测动画时及时调整IK
+		bUseFABRIK = !(BlasterCharacter->GetCombatComponent()->bLocalIsReloading || BlasterCharacter->GetCombatComponent()->bLocalSwapping);  //本地预测动画时及时调整IK
 	}
 	bUseAimOffsets = bUseFABRIK;
 	bUseRightHandTransform = bUseFABRIK;
