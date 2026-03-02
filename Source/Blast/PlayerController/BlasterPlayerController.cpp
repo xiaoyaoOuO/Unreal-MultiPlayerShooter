@@ -181,6 +181,11 @@ void ABlasterPlayerController::Client_ReportServerMatchState_Implementation(cons
 	UE_LOG(LogTemp,Warning,TEXT("Client : MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
 }
 
+void ABlasterPlayerController::Server_ReportPingState_Implementation(bool bIsHighPing)
+{
+	HighPingDelegate.Broadcast(bIsHighPing);
+}
+
 float ABlasterPlayerController::GetServerTime()
 {
 	return GetWorld()->GetTimeSeconds() + ServerClientDelta;
@@ -355,6 +360,10 @@ void ABlasterPlayerController::UpdatePingWarning(float DeltaSeconds)
 				}
 				CharacterOverlay->PlayAnimation(CharacterOverlay->HighPingWarningAnimation, 0.f, 0);
 				PingWarningTimer = 0.f;
+				Server_ReportPingState(true);  //通知服务器ping过高
+			}else
+			{
+				Server_ReportPingState(false);
 			}
 		}
 	}

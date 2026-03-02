@@ -9,6 +9,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bIsHighPing);
+
 UENUM()
 enum EHUDType
 {
@@ -74,6 +76,9 @@ class BLAST_API ABlasterPlayerController : public APlayerController
 public:
 	float SoloTripTime; //一次PRC发送的时间，武器开火调用RPC需要在服务端做开火校验，但是传入的HitTime是客户端的时间，所以在服务器校验时需要将客户端的HitTime转换为服务器时间，SoloTripTime就是这个转换的时间
 
+	//高Ping的委托
+	FHighPingDelegate HighPingDelegate;
+	
 private:
 	UPROPERTY()
 	ABlasterHUD* BlasterHUD;
@@ -118,7 +123,7 @@ private:
 	float PingAnimationDuration = 1.f;
 	float PingWarningTimer = 0.f;
 	float PingWarningAnimationTimer = 0.f;
-
+	
 	void HandleMatchStarted();
 	void HandleCoolDown();
 	UFUNCTION()
@@ -143,6 +148,9 @@ protected:
 
 	UFUNCTION(Client,Reliable)
 	void Client_ReportServerMatchState(const FServerMatchState& ServerMatchState);
+
+	UFUNCTION(Server,Reliable)
+	void Server_ReportPingState(bool bIsHighPing);
 
 public:
 	float GetServerTime();

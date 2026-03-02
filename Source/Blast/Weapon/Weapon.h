@@ -90,9 +90,11 @@ public:
 	FORCEINLINE bool IsFull(){return AmmoAmount == MagCapacity;}
 
 	void ShowPickUpWidget(bool bShowPickupWidget) const;
+	void RemoveHighPingDelegate();
 	void OnDropped();
 	void OnEquipped();
 	void OnSecondary();
+	void AddHighPingDelegate();
 	void OnStateSet();
 
 	void SetWeaponState(EWeaponState State);
@@ -110,6 +112,10 @@ public:
 	USkeletalMeshComponent* Get_WeaponMesh() const;
 
 	void UpdateAmmoAmountHUD();
+
+	//延迟太高的话，不启用ServerRewind
+	UFUNCTION()
+	void OnPingTooHigh(bool bPingTooHigh);
 
 	FORCEINLINE int32 Get_AmmoAmount() const {return AmmoAmount;}
 	FORCEINLINE EWeaponType Get_WeaponType() const {return WeaponType;}
@@ -183,7 +189,7 @@ public:
 	bool bShouldDestroy = false;
 
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated,EditAnywhere)
 	bool bUseServerSideRewind = false;
 
 private:

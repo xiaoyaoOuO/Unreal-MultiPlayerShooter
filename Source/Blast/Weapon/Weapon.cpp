@@ -110,6 +110,11 @@ void AWeapon::UpdateAmmoAmountHUD()
 	}
 }
 
+void AWeapon::OnPingTooHigh(bool bPingTooHigh)
+{
+	bUseServerSideRewind = !bPingTooHigh;
+}
+
 void AWeapon::SetDepthRender(bool bEnable)
 {
 	if (WeaponMesh)
@@ -173,6 +178,20 @@ void AWeapon::ShowPickUpWidget(const bool bShowPickupWidget) const
 	}
 }
 
+void AWeapon::RemoveHighPingDelegate()
+{
+	if (ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner()))
+	{
+		if (ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller))
+		{
+			if (OwnerController->HighPingDelegate.IsBound() && HasAuthority())
+			{
+				OwnerController->HighPingDelegate.RemoveDynamic(this,&AWeapon::OnPingTooHigh);
+			}
+		}
+	}
+}
+
 void AWeapon::OnDropped()
 {
 	//客户端和服务器都执行，需要判断authority
@@ -188,6 +207,8 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
 	WeaponMesh->MarkRenderStateDirty();
 	SetDepthRender(true);
+
+	RemoveHighPingDelegate();
 }
 
 void AWeapon::OnSecondary()
@@ -202,6 +223,22 @@ void AWeapon::OnSecondary()
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
 	SetDepthRender(true);
+
+	AddHighPingDelegate();
+}
+
+void AWeapon::AddHighPingDelegate()
+{
+	if (ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>(GetOwner()))
+	{
+		if (ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller))
+		{
+			if (!OwnerController->HighPingDelegate.IsBound() && HasAuthority())
+			{
+				OwnerController->HighPingDelegate.AddDynamic(this,&AWeapon::OnPingTooHigh);
+			}
+		}
+	}
 }
 
 void AWeapon::OnEquipped()
@@ -213,6 +250,8 @@ void AWeapon::OnEquipped()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	SetDepthRender(false);
+
+	AddHighPingDelegate();
 }
 
 void AWeapon::OnStateSet()
@@ -263,6 +302,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME_CONDITION(AWeapon, bUseServerSideRewind,COND_OwnerOnly);
 }
 
 FVector AWeapon::AmmoSpawnLocation() const
