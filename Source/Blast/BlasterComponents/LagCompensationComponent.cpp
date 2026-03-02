@@ -437,6 +437,19 @@ void ULagCompensationComponent::SetCharacterMeshCollision(const ABlasterCharacte
 	}
 }
 
+void ULagCompensationComponent::Server_ProjectileScoreRequest_Implementation(const FVector_NetQuantize& TraceStart,
+                                                                             const FVector_NetQuantize100& InitialVelocity, ABlasterCharacter* HitCharacter, AController* InstigatedBy,
+                                                                             float HitTime, float ProjectileDamage)
+{
+	FServerSideRewindResult ConfirmResult = ProjectileServerRewind(HitTime, TraceStart, InitialVelocity, HitCharacter);
+	if (InstigatedBy && ConfirmResult.bConfirmed)
+	{
+		AWeapon* Weapon = Character ? Character->Get_EquippedWeapon() : nullptr;
+		// Damage = ConfirmResult.bHeadShot ? Damage * 2.f : Damage; //爆头伤害翻倍
+		UGameplayStatics::ApplyDamage(HitCharacter, ProjectileDamage, InstigatedBy, Weapon, UDamageType::StaticClass());
+	}
+}
+
 void ULagCompensationComponent::Server_ShotgunScoreRequest_Implementation(
 	const FVector_NetQuantize& TraceStart,
 	const TArray<FVector_NetQuantize>& HitLocations,
@@ -485,6 +498,7 @@ void ULagCompensationComponent::Server_ScoreRequest_Implementation(
 		UGameplayStatics::ApplyDamage(HitCharacter, Damage, InstigatedBy, DamageCauser, UDamageType::StaticClass());
 	}
 }
+
 
 
 

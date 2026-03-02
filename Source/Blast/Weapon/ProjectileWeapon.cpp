@@ -44,7 +44,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 					if (ServerProjectileClass)
 					{
 						SpawnedProjectile = World->SpawnActor<AProjectile>(ServerProjectileClass,MuzzleTransform.GetLocation(),Rotation,SpawnParameters);
-						SpawnedProjectile->bUseServerRewind = false;
+						SpawnedProjectile->bUseServerRewind = true;
 					}
 				}
 			}else

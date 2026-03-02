@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blast/PlayerController/BlasterPlayerController.h"
+#include "Blast/Weapon/Projectile.h"
 #include "Components/ActorComponent.h"
 #include "Blast/Weapon/Weapon.h"
 #include "LagCompensationComponent.generated.h"
@@ -170,4 +171,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_ShotgunScoreRequest(const FVector_NetQuantize& TraceStart,const TArray<FVector_NetQuantize>& HitLocations,const TArray<ABlasterCharacter*>& HitCharacters, AController* InstigatedBy, AWeapon* DamageCauser, float HitTime);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ProjectileScoreRequest(const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, ABlasterCharacter* HitCharacter, AController* InstigatedBy, float HitTime, float ProjectileDamage);
 };
