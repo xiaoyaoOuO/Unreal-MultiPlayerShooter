@@ -7,6 +7,7 @@
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/GameState/BlasterGameState.h"
+#include "Blast/HUD/ReturnToMainMenu.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
@@ -384,6 +385,27 @@ void ABlasterPlayerController::PollForPing(float DeltaSeconds)
 	UpdatePingWarning(DeltaSeconds);
 }
 
+void ABlasterPlayerController::OnQuitButtonPressed()
+{
+	if (ReturnToMainMenuWidgetClass == nullptr) return;
+	if (ReturnToMainMenuWidget == nullptr)
+	{
+		ReturnToMainMenuWidget = CreateWidget<UReturnToMainMenu>(this, ReturnToMainMenuWidgetClass);
+	}
+	if (ReturnToMainMenuWidget)
+	{
+		if (bReturnMenuOpen)
+		{
+			ReturnToMainMenuWidget->MenuTearDown();
+		}
+		else
+		{
+			ReturnToMainMenuWidget->MenuStart();
+		}
+		bReturnMenuOpen = !bReturnMenuOpen;
+	}
+}
+
 void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, const FHUDData& Data)
 {
 	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
@@ -578,4 +600,12 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterPlayerController, MatchState);
+}
+
+void ABlasterPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	if (InputComponent == nullptr) return;
+
+	InputComponent->BindAction("Quit",IE_Pressed,this,&ABlasterPlayerController::OnQuitButtonPressed);
 }

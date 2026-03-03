@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/HUD/BlasterHUD.h"
+#include "Blast/HUD/ReturnToMainMenu.h"
 #include "GameFramework/GameMode.h"
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
@@ -123,6 +124,13 @@ private:
 	float PingAnimationDuration = 1.f;
 	float PingWarningTimer = 0.f;
 	float PingWarningAnimationTimer = 0.f;
+
+	//返回主菜单的界面
+	UPROPERTY(EditAnywhere,Category="Widget")
+	TSubclassOf<UUserWidget> ReturnToMainMenuWidgetClass;
+	UPROPERTY()
+	UReturnToMainMenu* ReturnToMainMenuWidget;
+	bool bReturnMenuOpen = false;
 	
 	void HandleMatchStarted();
 	void HandleCoolDown();
@@ -136,6 +144,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void ReceivedPlayer() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void SetupInputComponent() override;
 
 	UFUNCTION(Server,Reliable)
 	void Server_RequestServerTime(float TimeOfClientRequest);
@@ -172,4 +181,5 @@ public:
 	void UpdatePingHUD();
 	void UpdatePingWarning(float DeltaSeconds);
 	void PollForPing(float DeltaSeconds);
+	void OnQuitButtonPressed();
 };

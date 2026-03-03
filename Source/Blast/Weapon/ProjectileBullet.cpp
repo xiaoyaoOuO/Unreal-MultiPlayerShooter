@@ -71,11 +71,11 @@ void AProjectileBullet::BeginPlay()
 	}
 }
 
+#if WITH_EDITOR
 void AProjectileBullet::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-#if  WITH_EDITOR
 	FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(AProjectileBullet, InitialSpeed))
 	{
@@ -85,6 +85,5 @@ void AProjectileBullet::PostEditChangeProperty(struct FPropertyChangedEvent& Pro
 			ProjectileMovementComponent->MaxSpeed = InitialSpeed;
 		}
 	}
-#endif
-	
 }
+#endif
