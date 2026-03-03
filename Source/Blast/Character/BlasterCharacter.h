@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
 #include "Blast/TurningInPlace/TurningInPlace.h"
 #include "GameFramework/Character.h"
 #include "Blast/Interfaces/InteractWithCrosshairsInterface.h"
@@ -176,6 +177,18 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	/**
+	 * 得分最高时皇冠特效
+	 */
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* CrownSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* CrownComponent;
+
+	UPROPERTY(EditAnywhere)
+	USceneComponent* CrowPositionComponent;
 	
 	UFUNCTION()
 	void UpdateDissolveMaterial(float DissolveValue);
@@ -289,6 +302,12 @@ public:
 	
 	UFUNCTION(Server,Reliable)
 	void ServerLeaveGame();
+
+	UFUNCTION(NetMulticast,Reliable)
+	void Multicast_CharacterGainedLead(); //当玩家获得领先时，所有客户端都播放皇冠特效
+
+	UFUNCTION(NetMulticast,Reliable)
+	void Multicast_CharacterLostLead(); //当玩家失去领先时，所有客户端都停止皇冠特效
 	
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}

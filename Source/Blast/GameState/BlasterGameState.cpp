@@ -14,13 +14,23 @@ void ABlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void ABlasterGameState::UpdateScore(ABlasterPlayerState* ScoringPlayer)
 {
+	bool bHaveNewTopScorer = false;
 	if (TopScoringPlayers.Num() == 0)
 	{
 		TopScoringPlayers.Add(ScoringPlayer);
 		TopScore = ScoringPlayer->GetScore();
+		bHaveNewTopScorer = true;
 	}
 	else if (ScoringPlayer->GetScore() > TopScore)
 	{
+		//如果当前玩家的分数超过了之前的最高分，那么之前的最高分玩家就失去领先地位，当前玩家成为新的最高分玩家
+		for (const auto TopScoringPlayer : TopScoringPlayers)
+		{
+			if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(TopScoringPlayer->GetPawn()))
+			{
+				BlasterCharacter->Multicast_CharacterLostLead();
+			}
+		}
 		TopScoringPlayers.Empty();
 		TopScoringPlayers.Add(ScoringPlayer);
 		TopScore = ScoringPlayer->GetScore();
@@ -28,5 +38,13 @@ void ABlasterGameState::UpdateScore(ABlasterPlayerState* ScoringPlayer)
 	else if (ScoringPlayer->GetScore() == TopScore)
 	{
 		TopScoringPlayers.Add(ScoringPlayer);
+		bHaveNewTopScorer = true;
+	}
+	if (bHaveNewTopScorer) //只添加新玩家的领先特效
+	{
+		if (ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(ScoringPlayer->GetPawn()))
+		{
+			BlasterCharacter->Multicast_CharacterGainedLead();
+		}
 	}
 }

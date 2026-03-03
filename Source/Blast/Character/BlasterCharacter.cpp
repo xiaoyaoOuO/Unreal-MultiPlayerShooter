@@ -2,11 +2,14 @@
 
 
 #include "BlasterCharacter.h"
+
+#include "NiagaraComponent.h"
 #include "Blast/Blast.h"
 #include "Blast/BlasterComponents/BuffComponent.h"
 #include "Blast/BlasterComponents/CombatComponent.h"
 #include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Blast/GameMode/BlasterGameMode.h"
+#include "Blast/GameState/BlasterGameState.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
@@ -107,6 +110,9 @@ ABlasterCharacter::ABlasterCharacter()
 	BackBag = CreateDefaultSubobject<UBoxComponent>(TEXT("BackBag"));
 	BackBag->SetupAttachment(GetMesh(), FName("BackBag"));
 	HitBoxComponentMap.Add(FName("BackBag"), BackBag);
+
+	CrowPositionComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CrowPositionComponent"));
+	CrowPositionComponent->SetupAttachment(GetMesh(), FName("CrowSocket"));
 
 	for (auto& HitBox : HitBoxComponentMap)
 	{
@@ -692,6 +698,13 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddPlayerScore(0.f);
 			BlasterPlayerState->AddPlayerDefeat(0);
+			if (ABlasterGameState* BlasterGameState = GetWorld()->GetGameState<ABlasterGameState>())
+			{
+				if (BlasterGameState->TopScoringPlayers.Contains(BlasterPlayerState))
+				{
+					Multicast_CharacterGainedLead();
+				}
+			}
 		}
 	}
 }
@@ -807,6 +820,12 @@ void ABlasterCharacter::Elim(bool bLeftGame)
 	{
 		ShowSniperScopeWidget(false);
 	}
+
+	//如果有皇冠，失去皇冠
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
 	
 	GetWorldTimerManager().SetTimer(
 		RespawnTimer,
@@ -861,6 +880,32 @@ ECombatState ABlasterCharacter::Get_CombatState() const
 {
 	if (CombatComponent == nullptr) return ECombatState::ECS_DefaultMax;
 	return CombatComponent->Get_CombatState();
+}
+
+void ABlasterCharacter::Multicast_CharacterLostLead_Implementation()
+{
+	if (CrownComponent)
+	{
+		CrownComponent->Deactivate();
+	}
+}
+
+void ABlasterCharacter::Multicast_CharacterGainedLead_Implementation()
+{
+	if (CrownSystem == nullptr) return;
+	if (CrownComponent == nullptr)
+	{
+		FVector CrownLocation = GetActorLocation() + FVector(0.f,0.f,110.f);
+		if (CrowPositionComponent)
+		{
+			CrownLocation = CrowPositionComponent->GetComponentLocation();
+		}
+		CrownComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(CrownSystem,RootComponent,NAME_None,CrownLocation,FRotator::ZeroRotator,EAttachLocation::Type::KeepWorldPosition,false);
+	}
+	if (CrownComponent)
+	{
+		CrownComponent->Activate();
+	}
 }
 
 
