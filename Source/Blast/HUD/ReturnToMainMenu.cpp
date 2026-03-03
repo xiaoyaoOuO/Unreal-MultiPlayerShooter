@@ -62,15 +62,33 @@ void UReturnToMainMenu::MenuTearDown()
 	}
 }
 
+void UReturnToMainMenu::OnPlayerLeftGame()
+{
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->DestroySession();
+	}
+}
+
 void UReturnToMainMenu::OnReturnButtonClicked()
 {
 	if (ReturnButton)
 	{
 		ReturnButton->SetIsEnabled(false);
 	}
-	if (MultiplayerSessionsSubsystem)
+	if (UWorld* World = GetWorld())
 	{
-		MultiplayerSessionsSubsystem->DestroySession();
+		if (ABlasterPlayerController* PlayerController = Cast<ABlasterPlayerController>(World->GetFirstPlayerController()))
+		{
+			if (ABlasterCharacter* Character = Cast<ABlasterCharacter>(PlayerController->GetCharacter()))
+			{
+				Character->ServerLeaveGame();
+				Character->OnLeaveGame.AddDynamic(this,&UReturnToMainMenu::OnPlayerLeftGame);
+			}else
+			{
+				ReturnButton->SetIsEnabled(true);
+			}
+		}
 	}
 }
 

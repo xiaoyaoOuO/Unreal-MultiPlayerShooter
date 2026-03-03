@@ -128,6 +128,16 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
+void ABlasterCharacter::ServerLeaveGame_Implementation()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (BlasterGameMode && BlasterPlayerState)
+	{
+		BlasterGameMode->PlayerLeftGame(BlasterPlayerState);
+	}
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (IsValid(LastWeapon))
@@ -410,7 +420,7 @@ void ABlasterCharacter::OnRep_CurrentHealth(float LastHealth)
 	}
 	if (CurrentHealth <= 0.f)
 	{
-		Elim();
+		Elim(false);
 	}
 }
 
@@ -445,13 +455,6 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 			BlasterGameMode->CharacterElim(this,BlasterPlayerController,Cast<ABlasterPlayerController>(InstigatedBy));
-			GetWorldTimerManager().SetTimer(
-				RespawnTimer,
-				this,
-				&ABlasterCharacter::RespawnTimerFinished,
-				RespawnDelay,
-				false
-			);
 		}
 	}
 }
@@ -670,9 +673,13 @@ void ABlasterCharacter::RespawnTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-	if (BlasterGameMode && BlasterPlayerController)
+	if (BlasterGameMode && BlasterPlayerController && bLeaveGame == false)
 	{
 		BlasterGameMode->RespawnCharacter(this,BlasterPlayerController);
+	}
+	if (IsLocallyControlled() && bLeaveGame)
+	{
+		OnLeaveGame.Broadcast();
 	}
 }
 
@@ -749,8 +756,10 @@ void ABlasterCharacter::DropWeapons()
 	DropSecondaryWeapon();
 }
 
-void ABlasterCharacter::Elim()
+void ABlasterCharacter::Elim(bool bLeftGame)
 {
+	this->bLeaveGame = bLeftGame;
+	
 	bShouldElim = true;
 	PlayElimMontage();
 
@@ -798,6 +807,15 @@ void ABlasterCharacter::Elim()
 	{
 		ShowSniperScopeWidget(false);
 	}
+	
+	GetWorldTimerManager().SetTimer(
+		RespawnTimer,
+		this,
+		&ABlasterCharacter::RespawnTimerFinished,
+		RespawnDelay,
+		false
+	);
+	
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

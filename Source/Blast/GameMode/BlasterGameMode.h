@@ -25,6 +25,10 @@ public:
 	virtual void CharacterElim(class ABlasterCharacter* ElimmedCharacter, class ABlasterPlayerController* VictimController, class ABlasterPlayerController* AttackerController);
 	virtual void RespawnCharacter(ACharacter* ElimmedCharacter, AController* VictimController);
 
+	void PlayerLeftGame(class ABlasterPlayerState* PlayerLeaving);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_EliminateCharacter(ABlasterCharacter* ElimmedCharacter, bool bLeftGame);
+
 	ABlasterGameMode();
 private:
 	float ElimScore = 1.f;

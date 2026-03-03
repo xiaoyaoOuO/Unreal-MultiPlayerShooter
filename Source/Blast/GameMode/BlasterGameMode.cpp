@@ -70,7 +70,7 @@ void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
 	//角色死亡
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Elim();
+		ElimmedCharacter->Elim(false);
 	}
 	if (AttackerController)
 	{
@@ -110,6 +110,33 @@ void ABlasterGameMode::RespawnCharacter(ACharacter* ElimmedCharacter, AControlle
 	{
 		int32 RandomIndex = FMath::RandRange(0,PlayerStarts.Num() - 1);
 		RestartPlayerAtPlayerStart(ElimmedController,PlayerStarts[RandomIndex]);
+	}
+}
+
+void ABlasterGameMode::PlayerLeftGame(class ABlasterPlayerState* PlayerLeaving)
+{
+	if (PlayerLeaving == nullptr) return;
+	//先更新GameState中的TopScoringPlayers列表，移除离开的玩家
+	if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
+	{
+		auto& TopScoringPlayers = BlasterGameState->TopScoringPlayers;
+		if (TopScoringPlayers.Contains(PlayerLeaving))
+		{
+			TopScoringPlayers.Remove(PlayerLeaving);
+		}
+	}
+	//再执行角色的消亡逻辑
+	if (ABlasterCharacter* Character = Cast<ABlasterCharacter>(PlayerLeaving->GetPawn()))
+	{
+		Multicast_EliminateCharacter(Character, true);
+	}
+}
+
+void ABlasterGameMode::Multicast_EliminateCharacter_Implementation(ABlasterCharacter* ElimmedCharacter, bool bLeftGame)
+{
+	if (ElimmedCharacter)
+	{
+		ElimmedCharacter->Elim(bLeftGame);
 	}
 }
 

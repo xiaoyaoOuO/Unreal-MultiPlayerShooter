@@ -13,6 +13,8 @@
 #include "BlasterCharacter.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeaveGame);
+
 UCLASS()
 class BLAST_API ABlasterCharacter : public ACharacter , public IInteractWithCrosshairsInterface
 {
@@ -70,6 +72,9 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
+	//是否离开游戏
+	bool bLeaveGame;
+
 	FRotator StartingAimRotation;
 	
 	UPROPERTY(Replicated)
@@ -102,7 +107,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
 
-	/*
+	/**
 	 * 优化网络传输，人物转向只在服务端和非拥有客户端进行
 	 */
 	bool bRotateRootBone;
@@ -130,7 +135,7 @@ private:
 	UPROPERTY(Replicated)
 	ETurningInPlace TurningInPlace;
 
-	/*
+	/**
 	 * 人物的动画蒙太奇
 	 */
 	UPROPERTY(EditAnywhere, Category=Combat)
@@ -152,7 +157,7 @@ private:
 	UAnimMontage* SwapWeaponMontage;
 
 
-	/*
+	/**
 	 * 角色死亡时消融特效
 	 */
 	UPROPERTY(EditAnywhere,Category = Elim)
@@ -186,7 +191,7 @@ protected:
 	void MoveRight(float Value);
 	void LookUp(float Value);
 	void Turn(float Value);
-	/*
+	/**
 	 * 操作绑定函数
 	 */
 	void EquipButtonPressed();
@@ -255,13 +260,16 @@ public:
 
 	UPROPERTY()
 	TMap<FName, UBoxComponent*> HitBoxComponentMap;
+
+	//离开游戏的委托
+	FOnLeaveGame OnLeaveGame;
 	
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
-	void Elim();
+	void Elim(bool bLeftGame);
 	void UpdateHealthHUD();
 	void UpdateShieldHUD();
 	void PollInit();   //在Tick中做检查，如果没有初始化就初始化
@@ -278,6 +286,9 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScopeWidget);
+	
+	UFUNCTION(Server,Reliable)
+	void ServerLeaveGame();
 	
 	
 	FORCEINLINE float Get_AO_Yaw() const {return AO_Yaw;}

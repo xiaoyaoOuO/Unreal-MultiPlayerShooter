@@ -25,6 +25,9 @@ public:
 	void MenuTearDown();
 
 	UFUNCTION()
+	void OnPlayerLeftGame();
+
+	UFUNCTION()
 	void OnReturnButtonClicked();
 	
 	UFUNCTION()
