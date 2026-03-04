@@ -187,6 +187,28 @@ void ABlasterPlayerController::Server_ReportPingState_Implementation(bool bIsHig
 	HighPingDelegate.Broadcast(bIsHighPing);
 }
 
+void ABlasterPlayerController::Client_ElimAnnouncement_Implementation(const ABlasterPlayerState* VictimPlayerState,
+	const ABlasterPlayerState* AttackerPlayerState)
+{
+	ABlasterPlayerState* LocalPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (LocalPlayerState == nullptr || AttackerPlayerState == nullptr || VictimPlayerState == nullptr) return;
+
+	FString AttackerName = AttackerPlayerState->GetPlayerName();
+	FString VictimPlayerName = VictimPlayerState->GetPlayerName();
+	if (LocalPlayerState == AttackerPlayerState)
+	{
+		AttackerName = FString(TEXT("你"));
+		if (LocalPlayerState == VictimPlayerState)
+		{
+			VictimPlayerName = FString(TEXT("你自己"));
+		}
+	}else if (LocalPlayerState == VictimPlayerState)
+	{
+		VictimPlayerName = FString(TEXT("你"));
+	}
+	ShowElimAnnouncement(AttackerName, VictimPlayerName);
+}
+
 float ABlasterPlayerController::GetServerTime()
 {
 	return GetWorld()->GetTimeSeconds() + ServerClientDelta;
@@ -403,6 +425,15 @@ void ABlasterPlayerController::OnQuitButtonPressed()
 			ReturnToMainMenuWidget->MenuStart();
 		}
 		bReturnMenuOpen = !bReturnMenuOpen;
+	}
+}
+
+void ABlasterPlayerController::ShowElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName)
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD)
+	{
+		BlasterHUD->AddElimAnnouncement(AttackerName, VictimPlayerName);
 	}
 }
 

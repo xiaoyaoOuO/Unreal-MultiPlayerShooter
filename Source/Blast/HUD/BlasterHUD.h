@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ElimAnnouncement.h"
 #include "GameFramework/HUD.h"
 #include "Blast/HUD/CharacterOverlay.h"
 #include "Blast/HUD/Announcement.h"
@@ -42,12 +43,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUserWidget> AnnouncementClass;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUserWidget> ElimAnnouncementClass;
+
+	TArray<UElimAnnouncement*> AnnouncementArray;
+
 	UPROPERTY()
 	UCharacterOverlay* CharacterOverlay;
 	float CrosshairSpreadMax = 16.f;
 
 	UPROPERTY()
 	UAnnouncement* Announcement;
+
+	UPROPERTY(EditAnywhere)
+	float ElimAnnouncementDuration = 2.5f;
 	
 public:
 	virtual void BeginPlay() override;
@@ -55,8 +64,12 @@ public:
 	void DrawCrosshairs(UTexture2D* ToDraw, const FVector2D& ViewPortCenter,FLinearColor DrawColor,FVector2D Spread = FVector2D::ZeroVector);
 	void AddCharacterOverlay();
 	void AddAnnouncement();
+	void AddElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName);
 	void CloseAnnouncement();
 	void OpenAnnouncement();
+
+	UFUNCTION()
+	void RemoveElimAnnouncement(UElimAnnouncement* AnnouncementToRemove);
 	
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& HUDPackage){HUD = HUDPackage;}
 	FORCEINLINE UCharacterOverlay* GetCharacterOverlay() const {return CharacterOverlay;}

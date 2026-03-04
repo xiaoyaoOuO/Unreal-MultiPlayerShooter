@@ -72,27 +72,34 @@ void ABlasterGameMode::CharacterElim(ABlasterCharacter* ElimmedCharacter,
 	{
 		ElimmedCharacter->Elim(false);
 	}
-	if (AttackerController)
+
+	if (VictimController == nullptr || AttackerController == nullptr) return;
+	ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>();
+	ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
+	
+	if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
 	{
-		ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>();
-		ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
-		if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
+		if (MatchState == MatchState::InProgress)
 		{
-			if (MatchState == MatchState::InProgress)
+			AttackerPlayerState->AddPlayerScore(ElimScore);
+			if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
 			{
-				AttackerPlayerState->AddPlayerScore(ElimScore);
-				if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
-				{
-					BlasterGameState->UpdateScore(AttackerPlayerState);
-				}
+				BlasterGameState->UpdateScore(AttackerPlayerState);
 			}
 		}
 	}
-	if (VictimController)
+	
+	if (VictimPlayerState)
 	{
-		if (ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>())
+		VictimPlayerState->AddPlayerDefeat(1);
+	}
+	
+	//通知所有客户端角色被消灭了
+	for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
+	{
+		if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(*It))
 		{
-			VictimPlayerState->AddPlayerDefeat(1);
+			BlasterPlayerController->Client_ElimAnnouncement(VictimPlayerState,AttackerPlayerState);
 		}
 	}
 }

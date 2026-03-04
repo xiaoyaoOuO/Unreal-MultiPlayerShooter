@@ -182,4 +182,8 @@ public:
 	void UpdatePingWarning(float DeltaSeconds);
 	void PollForPing(float DeltaSeconds);
 	void OnQuitButtonPressed();
+	void ShowElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName);
+	
+	UFUNCTION(Client,Reliable)
+	void Client_ElimAnnouncement(const ABlasterPlayerState* VictimPlayerState, const ABlasterPlayerState* AttackerPlayerState);
 };

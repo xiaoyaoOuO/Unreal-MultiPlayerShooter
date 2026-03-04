@@ -233,7 +233,7 @@ void AWeapon::AddHighPingDelegate()
 	{
 		if (ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller))
 		{
-			if (!OwnerController->HighPingDelegate.IsBound() && HasAuthority())
+			if (!OwnerController->HighPingDelegate.IsBound() && HasAuthority() && bUseServerSideRewind)
 			{
 				OwnerController->HighPingDelegate.AddDynamic(this,&AWeapon::OnPingTooHigh);
 			}

@@ -2,6 +2,10 @@
 
 
 #include "BlasterHUD.h"
+
+#include "Blast/PlayerController/BlasterPlayerController.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 #include "GameFramework/PlayerController.h"
 
 void ABlasterHUD::BeginPlay()
@@ -106,6 +110,41 @@ void ABlasterHUD::AddAnnouncement()
 	}
 }
 
+void ABlasterHUD::AddElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName)
+{
+	ABlasterPlayerController* PlayerController = Cast<ABlasterPlayerController>(GetOwningPlayerController());
+	if (ElimAnnouncementClass)
+	{
+		if (UElimAnnouncement* ElimAnnouncement = CreateWidget<UElimAnnouncement>(PlayerController,ElimAnnouncementClass))
+		{
+			ElimAnnouncement->SetAnnouncementText(AttackerName,VictimPlayerName);
+			ElimAnnouncement->AddToViewport();
+
+			//如果有多条公告，按序排列
+			for (auto ElimAnnouncementInArray : AnnouncementArray)
+			{
+				if (ElimAnnouncementInArray == nullptr) continue;
+				if (UCanvasPanelSlot* CanvasSlot =UWidgetLayoutLibrary::SlotAsCanvasSlot(ElimAnnouncementInArray->AnnouncementBox))
+				{
+					FVector2D CurrentPosition = CanvasSlot->GetPosition();
+					FVector2D NewPosition = FVector2D(
+						CurrentPosition.X,
+						CurrentPosition.Y - CanvasSlot->GetSize().Y 
+					);
+					CanvasSlot->SetPosition(NewPosition);
+				}
+			}
+			AnnouncementArray.Add(ElimAnnouncement);
+
+			FTimerHandle TimerHandle;
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindUFunction(this,FName("RemoveElimAnnouncement"),ElimAnnouncement);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle,TimerDelegate,ElimAnnouncementDuration,false);
+		}
+	}
+	
+}
+
 void ABlasterHUD::CloseAnnouncement()
 {
 	if (Announcement)
@@ -119,5 +158,17 @@ void ABlasterHUD::OpenAnnouncement()
 	if (Announcement)
 	{
 		Announcement->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void ABlasterHUD::RemoveElimAnnouncement(UElimAnnouncement* AnnouncementToRemove)
+{
+	if (AnnouncementToRemove)
+	{
+		if (AnnouncementArray.Contains(AnnouncementToRemove))
+		{
+			AnnouncementArray.Remove(AnnouncementToRemove);
+		}
+		AnnouncementToRemove->RemoveFromParent();
 	}
 }
