@@ -106,11 +106,9 @@ FVector AShotgunWeapon::TraceEndWithScatter(const FVector& StartLocation, const 
 	FVector ShotDirection = (HitTarget - StartLocation).GetSafeNormal();
 	FVector SphereCenter = StartLocation + ShotDirection * SphereDistance;
 
-	DrawDebugSphere(GetWorld(), SphereCenter, ScatterRadius, 12, FColor::Red, false, 2.f);
 	//在散射范围内随机一个点
 	FVector RandomScaterVector = UKismetMathLibrary::RandomUnitVector() * UKismetMathLibrary::RandomFloatInRange(0.f, ScatterRadius);
 	FVector RandomPoint = SphereCenter + RandomScaterVector;
-	DrawDebugPoint(GetWorld(), RandomPoint, 1.f, FColor::Green, false, 2.f);
 	return RandomPoint;
 }
 

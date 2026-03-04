@@ -57,8 +57,6 @@ void AProjectileBullet::BeginPlay()
 	FPredictProjectilePathParams PathParams;
 	PathParams.bTraceWithChannel = true;
 	PathParams.bTraceWithCollision = true;
-	PathParams.DrawDebugTime = 5.f;
-	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
 	PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
 	PathParams.MaxSimTime = 4.f;
 	PathParams.ProjectileRadius = 5.f;

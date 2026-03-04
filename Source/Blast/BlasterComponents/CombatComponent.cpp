@@ -35,17 +35,12 @@ void UCombatComponent::LocalFire(const FVector_NetQuantize& HitTarget)
 	{
 		Character->PlayFireMontage();
 		EquippedWeapon->Fire(HitTarget);
-		DrawDebugSphere(GetWorld(), HitTarget, 12.f, 12, FColor::Red, false, 2.f);
 	}
 }
 
 void UCombatComponent::LocalFireShotgun(const TArray<FVector_NetQuantize>& HitTargets)
 {
 	AShotgunWeapon* ShotgunWeapon = Cast<AShotgunWeapon>(EquippedWeapon);
-	for (const auto & HitTarget : HitTargets)
-	{
-		DrawDebugSphere(GetWorld(), HitTarget, 10.f, 12, FColor::Orange, false,10.f);
-	}
 	if (Character)
 	{
 		if (CombatState == ECombatState::ECS_Reloading && EquippedWeapon->Get_WeaponType() == EWeaponType::EWT_Shotgun)
