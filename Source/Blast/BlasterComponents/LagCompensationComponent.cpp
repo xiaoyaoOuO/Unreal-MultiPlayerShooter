@@ -22,7 +22,6 @@ void ULagCompensationComponent::BeginPlay()
 
 	FFramePackage FramePackage;
 	SaveFramePackage(FramePackage);
-	ShowFramePackage(FramePackage);
 }
 
 
