@@ -4,6 +4,7 @@
 #include "LagCompensationComponent.h"
 
 #include "Blast/Blast.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ULagCompensationComponent::ULagCompensationComponent()
@@ -129,7 +130,7 @@ FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFra
 {
 	FFramePackage InterpFrame;
 	float TimeBetweenFrames = YoungFrame.Time - OldFrame.Time;
-	float LerpFactor = (HitTime - OldFrame.Time) / TimeBetweenFrames;
+	float LerpFactor = FMath::Clamp((HitTime - OldFrame.Time) / TimeBetweenFrames ,0.f ,1.f);
 	InterpFrame.Time = HitTime;
 	InterpFrame.HitCharacter = OldFrame.HitCharacter;
 	for (const auto& HitBox : OldFrame.HitBoxInfo)
@@ -137,7 +138,7 @@ FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFra
 		FBoxInformation InterpBoxInfo;
 		FBoxInformation OldBoxInfo = HitBox.Value;
 		FBoxInformation YoungBoxInfo = YoungFrame.HitBoxInfo[HitBox.Key];
-		InterpBoxInfo.BoxExtent = FMath::VInterpTo(OldBoxInfo.BoxExtent, YoungBoxInfo.BoxExtent, 1.f, LerpFactor);
+		InterpBoxInfo.BoxExtent = YoungBoxInfo.BoxExtent;
 		InterpBoxInfo.BoxLocation = FMath::VInterpTo(OldBoxInfo.BoxLocation, YoungBoxInfo.BoxLocation, 1.f, LerpFactor);
 		InterpBoxInfo.BoxRotation = FMath::RInterpTo(OldBoxInfo.BoxRotation, YoungBoxInfo.BoxRotation, 1.f, LerpFactor);
 		InterpFrame.HitBoxInfo.Add(HitBox.Key, InterpBoxInfo);
@@ -147,7 +148,6 @@ FFramePackage ULagCompensationComponent::FrameInterp(const FFramePackage& OldFra
 
 FFramePackage ULagCompensationComponent::GetFrameToCheck(float HitTime, const ABlasterCharacter* HitCharacter)
 {
-	if (Character == nullptr) return FFramePackage();
 	if (!IsValid(HitCharacter)) return FFramePackage();
 	
 	ULagCompensationComponent* LagCompensationComponent = HitCharacter->GetLagCompensationComponent();
@@ -195,6 +195,7 @@ FFramePackage ULagCompensationComponent::GetFrameToCheck(float HitTime, const AB
 		//插值计算出HitTime时的帧数据
 		FrameToCheck = FrameInterp(Old->GetValue(), Young->GetValue(), HitTime);
 	}
+	ShowFramePackage(FrameToCheck);
 	return FrameToCheck;
 }
 
@@ -209,7 +210,11 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 	CacheCharacterHitBox(HitCharacter, CurrentFrame);
 	MoveHitBoxes(Package, HitCharacter);
 	SetCharacterMeshCollision(HitCharacter, ECollisionEnabled::NoCollision); //关闭角色Mesh的碰撞，防止射线检测时被Mesh挡住,后面一定要重置
-
+	if (HitCharacter && HitCharacter->GetCapsuleComponent())
+	{
+		HitCharacter->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_HitBox, ECR_Ignore);
+	}
+	SetAllHitBoxCollision(HitCharacter,ECollisionEnabled::Type::NoCollision);
 	SetHeadHitBoxCollision(HitCharacter, ECollisionEnabled::QueryOnly);
 	FHitResult HitResult;
 	FVector HitEndLocation = TraceStart + (HitLocation - TraceStart) * 1.25f; //增加射线长度，防止射线过短无法击中
@@ -218,17 +223,6 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 		World->LineTraceSingleByChannel(HitResult, TraceStart, HitEndLocation, ECC_HitBox);
 		if (HitResult.bBlockingHit)
 		{
-			if (UBoxComponent* Box = Cast<UBoxComponent>(HitResult.GetComponent()))
-			{
-				DrawDebugBox(GetWorld(),
-					Box->GetComponentLocation(),
-					Box->GetScaledBoxExtent(),
-					FQuat(Box->GetComponentRotation()),
-					FColor::Green,
-					false,
-					5.f
-				);
-			}
 			Result.bConfirmed = true;
 			Result.bHeadShot = true;
 		}else
@@ -348,8 +342,6 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FF
 	PredictProjectilePathParams.MaxSimTime = MaxRecordTime;
 	PredictProjectilePathParams.ProjectileRadius = 5.f;
 	PredictProjectilePathParams.ActorsToIgnore.Add(GetOwner());
-	PredictProjectilePathParams.DrawDebugTime = 5.f;
-	PredictProjectilePathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
 	
 	
 	FPredictProjectilePathResult PredictProjectilePathResult;
@@ -399,7 +391,6 @@ void ULagCompensationComponent::MoveHitBoxes(const FFramePackage& InPackage,cons
 	for (auto& HitBoxComponent : HitCharacter->HitBoxComponentMap)
 	{
 		if (HitBoxComponent.Value == nullptr) continue;
-		HitBoxComponent.Value->SetBoxExtent(InPackage.HitBoxInfo[HitBoxComponent.Key].BoxExtent);
 		HitBoxComponent.Value->SetWorldLocation(InPackage.HitBoxInfo[HitBoxComponent.Key].BoxLocation);
 		HitBoxComponent.Value->SetWorldRotation(InPackage.HitBoxInfo[HitBoxComponent.Key].BoxRotation);
 	}
@@ -445,7 +436,7 @@ void ULagCompensationComponent::Server_ProjectileScoreRequest_Implementation(con
 	if (InstigatedBy && ConfirmResult.bConfirmed)
 	{
 		AWeapon* Weapon = Character ? Character->Get_EquippedWeapon() : nullptr;
-		// Damage = ConfirmResult.bHeadShot ? Damage * 2.f : Damage; //爆头伤害翻倍
+		ProjectileDamage = ConfirmResult.bHeadShot ? ProjectileDamage * 1.5f : ProjectileDamage; //爆头伤害翻倍
 		UGameplayStatics::ApplyDamage(HitCharacter, ProjectileDamage, InstigatedBy, Weapon, UDamageType::StaticClass());
 	}
 }
@@ -494,7 +485,10 @@ void ULagCompensationComponent::Server_ScoreRequest_Implementation(
 	if (InstigatedBy && ConfirmResult.bConfirmed)
 	{
 		float Damage = DamageCauser->GetDamage();
-		// Damage = ConfirmResult.bHeadShot ? Damage * 2.f : Damage; //爆头伤害翻倍
+		if (ConfirmResult.bHeadShot)
+		{
+			Damage *= 1.5f; //爆头伤害翻倍
+		}
 		UGameplayStatics::ApplyDamage(HitCharacter, Damage, InstigatedBy, DamageCauser, UDamageType::StaticClass());
 	}
 }

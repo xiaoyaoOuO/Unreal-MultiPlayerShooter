@@ -74,7 +74,12 @@ void AHitScanWeapon::WeaponHit(FHitResult& HitResult,const UWorld* World,const F
 		{
 			if (HasAuthority() && OwnerCharacter->IsLocallyControlled())
 			{
-				UGameplayStatics::ApplyDamage(HitCharacter,Damage,Controller,this,UDamageType::StaticClass());
+				float DamageToApply = Damage;
+				if (HitResult.BoneName == FName("head"))
+				{
+					DamageToApply *= 1.5f;
+				}
+				UGameplayStatics::ApplyDamage(HitCharacter,DamageToApply,Controller,this,UDamageType::StaticClass());
 			}
 			if (!HasAuthority() && bUseServerSideRewind && OwnerCharacter->IsLocallyControlled())
 			{

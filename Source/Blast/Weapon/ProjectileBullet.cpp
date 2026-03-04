@@ -31,7 +31,12 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 
 		if (OwnerCharacter->HasAuthority() && !bUseServerRewind)
 		{
-			UGameplayStatics::ApplyDamage(HitCharacter, Damage, OwnerController, this, UDamageType::StaticClass());
+			float DamageToApply = Damage;
+			if (HitResult.BoneName == FName("head"))
+			{
+				DamageToApply *= 1.5f;
+			}
+			UGameplayStatics::ApplyDamage(HitCharacter, DamageToApply, OwnerController, this, UDamageType::StaticClass());
 		}
 		if (!OwnerCharacter->HasAuthority() && bUseServerRewind) //客户端需要向服务器发送请求，让服务器根据客户端传来的TraceStart和HitLocation进行服务器回放，确认命中有效性
 		{
