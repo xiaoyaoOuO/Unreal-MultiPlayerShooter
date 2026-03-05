@@ -11,6 +11,7 @@
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blast/BlasterType/InfoText.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::HandleMatchStarted(bool bIsTeamMatchToSet)
@@ -455,6 +456,45 @@ void ABlasterPlayerController::UpdateTeamScore(float RedTeamScore, float BlueTea
 	}
 }
 
+FText ABlasterPlayerController::GetCoolDownInfo(const TArray<ABlasterPlayerState*>& ScorePlayers)
+{
+	FText InfoText;
+	if (ScorePlayers.Num() == 0)
+	{
+		InfoText = FText::FromString(Announcement::NoWinner);
+	}else if (ScorePlayers.Num() == 1)
+	{
+		FString WinnerName = ScorePlayers[0]->GetPlayerName();
+		FString InfoString = Announcement::Winner + WinnerName;
+		InfoText = FText::FromString(InfoString);
+	}else
+	{
+		FString WinnerNames;
+		for (const auto BlasterPlayerState : ScorePlayers)
+		{
+			WinnerNames += BlasterPlayerState->GetPlayerName() + TEXT("\n");
+		}
+		InfoText = FText::FromString(FString::Printf(TEXT("%s\n %s"),*Announcement::Winner ,*WinnerNames));
+	}
+	return InfoText;
+}
+
+FText ABlasterPlayerController::GetTeamCoolDownInfo(float RedTeamScore, float BlueTeamScore)
+{
+	FText InfoText;
+	if (RedTeamScore == BlueTeamScore)
+	{
+		InfoText = FText::FromString(Announcement::Draw);
+	}else if (RedTeamScore > BlueTeamScore)
+	{
+		InfoText = FText::FromString(Announcement::RedTeamWinner);
+	}else
+	{
+		InfoText = FText::FromString(Announcement::BlueTeamWinner);
+	}
+	return InfoText;
+}
+
 void ABlasterPlayerController::OnRep_TeamMatch()
 {
 	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
@@ -598,23 +638,7 @@ void ABlasterPlayerController::DrawCoolDownHUD(const UAnnouncement* Announcement
 		{
 			UE_LOG(LogTemp,Warning,TEXT("UpdateScore With GameState"));
 			TArray<ABlasterPlayerState*> ScorePlayers = GameState->TopScoringPlayers;
-			FText InfoText;
-			if (ScorePlayers.Num() == 0)
-			{
-				InfoText = FText::FromString(TEXT("没有玩家得分"));
-			}else if (ScorePlayers.Num() == 1)
-			{
-				FString WinnerName = ScorePlayers[0]->GetPlayerName();
-				InfoText = FText::FromString(FString::Printf(TEXT("胜利者: %s"), *WinnerName));
-			}else
-			{
-				FString WinnerNames;
-				for (const auto BlasterPlayerState : ScorePlayers)
-				{
-					WinnerNames += BlasterPlayerState->GetPlayerName() + TEXT("\n");
-				}
-				InfoText = FText::FromString(FString::Printf(TEXT("胜利者:\n %s"), *WinnerNames));
-			}
+			FText InfoText = bIsTeamMatch ? GetTeamCoolDownInfo(GameState->RedTeamScore, GameState->BlueTeamScore) : GetCoolDownInfo(ScorePlayers);
 			Announcement->InfoText->SetText(InfoText);
 		}
 	}

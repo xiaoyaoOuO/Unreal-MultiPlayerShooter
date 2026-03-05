@@ -187,6 +187,8 @@ public:
 	void OnQuitButtonPressed();
 	void ShowElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName);
 	void UpdateTeamScore(float RedTeamScore, float BlueTeamScore);
+	FText GetCoolDownInfo(const TArray<ABlasterPlayerState*>& ScorePlayers);
+	FText GetTeamCoolDownInfo(float RedTeamScore, float BlueTeamScore);
 	
 	UFUNCTION(Client,Reliable)
 	void Client_ElimAnnouncement(const ABlasterPlayerState* VictimPlayerState, const ABlasterPlayerState* AttackerPlayerState);
