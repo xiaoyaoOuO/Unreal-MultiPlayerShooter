@@ -5,11 +5,21 @@
 
 #include "Net/UnrealNetwork.h"
 
+void ABlasterGameState::OnRep_BlueTeamScore()
+{
+}
+
+void ABlasterGameState::OnRep_RedTeamScore()
+{
+}
+
 void ABlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterGameState, TopScoringPlayers);
+	DOREPLIFETIME(ABlasterGameState, RedTeamScore);
+	DOREPLIFETIME(ABlasterGameState, BlueTeamScore);
 }
 
 void ABlasterGameState::UpdateScore(ABlasterPlayerState* ScoringPlayer)

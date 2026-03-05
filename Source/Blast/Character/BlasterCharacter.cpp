@@ -487,6 +487,27 @@ void ABlasterCharacter::InitialWeapon()
 	}
 }
 
+void ABlasterCharacter::SetTeamColor(ETeam Team)
+{
+	switch (Team)
+	{
+	case ETeam::ET_Red:
+		GetMesh()->SetMaterial(0,RedTeamMaterial);
+		DissolveMaterialInstance = RedTeamDissolveMaterialInstance;
+		break;
+	case ETeam::ET_Blue:
+		GetMesh()->SetMaterial(0,BlueTeamMaterial);
+		DissolveMaterialInstance = BlueTeamDissolveMaterialInstance;
+		break;
+	case ETeam::ET_NoTeam:
+		GetMesh()->SetMaterial(0,OriginMaterial);
+		DissolveMaterialInstance = BlueTeamDissolveMaterialInstance;
+		break;
+	default:
+		break;
+	}
+}
+
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (!CombatComponent || CombatComponent->EquippedWeapon == nullptr) return;
@@ -561,17 +582,17 @@ void ABlasterCharacter::HideCharacterWhenCameraClose()
 	if (CameraDistance < CameraThreshold)
 	{
 		GetMesh()->SetVisibility(false);
-		if (CombatComponent && CombatComponent->EquippedWeapon)
+		if (CombatComponent && CombatComponent->SecondaryWeapon)
 		{
-			// CombatComponent->EquippedWeapon->Get_WeaponMesh()->SetVisibility(false);
+			CombatComponent->SecondaryWeapon->Get_WeaponMesh()->SetVisibility(false);
 		}
 	}
 	else
 	{
 		GetMesh()->SetVisibility(true);
-		if (CombatComponent && CombatComponent->EquippedWeapon)
+		if (CombatComponent && CombatComponent->SecondaryWeapon)
 		{
-			// CombatComponent->EquippedWeapon->Get_WeaponMesh()->SetVisibility(true);
+			CombatComponent->SecondaryWeapon->Get_WeaponMesh()->SetVisibility(true);
 		}
 	}
 }
@@ -699,6 +720,7 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddPlayerScore(0.f);
 			BlasterPlayerState->AddPlayerDefeat(0);
+			SetTeamColor(BlasterPlayerState->GetTeam());
 			if (ABlasterGameState* BlasterGameState = GetWorld()->GetGameState<ABlasterGameState>())
 			{
 				if (BlasterGameState->TopScoringPlayers.Contains(BlasterPlayerState))
@@ -790,6 +812,7 @@ void ABlasterCharacter::Elim(bool bLeftGame)
 	}
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 	//溶解特效
 	if (DissolveMaterialInstance)

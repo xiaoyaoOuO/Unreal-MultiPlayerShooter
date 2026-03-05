@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "NiagaraSystem.h"
-#include "Blast/TurningInPlace/TurningInPlace.h"
+#include "Blast/BlasterType/CombatState.h"
+#include "Blast/BlasterType/TeamType.h"
+#include "Blast/BlasterType/TurningInPlace.h"
 #include "GameFramework/Character.h"
 #include "Blast/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
-#include "Blast/TurningInPlace/CombatState.h"
 #include "Components/BoxComponent.h"
 #include "Sound/SoundCue.h"
 #include "BlasterCharacter.generated.h"
@@ -161,11 +162,26 @@ private:
 	/**
 	 * 角色死亡时消融特效
 	 */
-	UPROPERTY(EditAnywhere,Category = Elim)
+	UPROPERTY(VisibleAnywhere,Category=Elim)
 	UMaterialInstance* DissolveMaterialInstance;
 
-	UPROPERTY(VisibleDefaultsOnly,Category = Elim)
+	UPROPERTY(VisibleAnywhere,Category = Elim)
 	UMaterialInstanceDynamic* DissolveMaterialInstanceDynamic;
+
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* RedTeamDissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* BlueTeamDissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere,Category = Elim)
+	UMaterialInstance* OriginMaterial;
+
+	UPROPERTY(EditAnywhere,Category = TeamColor)
+	UMaterialInstance* RedTeamMaterial;
+
+	UPROPERTY(EditAnywhere,Category = TeamColor)
+	UMaterialInstance* BlueTeamMaterial;
 
 	UPROPERTY(VisibleAnywhere)
 	UTimelineComponent* DissolveTimeline;
@@ -292,6 +308,7 @@ public:
 	void DropPrimaryWeapon();
 	void DropWeapons();
 	void InitialWeapon(); 	//玩家出生默认的武器
+	void SetTeamColor(ETeam Team);
 	
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();

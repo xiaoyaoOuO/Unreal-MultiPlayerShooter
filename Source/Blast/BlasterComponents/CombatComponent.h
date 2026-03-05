@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blast/BlasterType/CombatState.h"
 #include "Blast/Character/BlasterCharacter.h"
 #include "Blast/PlayerController/BlasterPlayerController.h"
 #include "Components/ActorComponent.h"
@@ -132,8 +133,11 @@ protected:
 	void FireShotgun();
 
 public:
+	UPROPERTY()
 	class ABlasterCharacter* Character;
+	UPROPERTY()
 	class ABlasterPlayerController* Controller;
+	UPROPERTY()
 	class ABlasterHUD* HUD;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)

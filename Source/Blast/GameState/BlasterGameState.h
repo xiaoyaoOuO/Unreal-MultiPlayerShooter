@@ -22,6 +22,23 @@ public:
 	UPROPERTY(Replicated)
 	TArray<ABlasterPlayerState*> TopScoringPlayers;
 
+	UPROPERTY()
+	TArray<ABlasterPlayerState*> RedTeamPlayers;
+	UPROPERTY()
+	TArray<ABlasterPlayerState*> BlueTeamPlayers;
+
+	UPROPERTY(ReplicatedUsing=OnRep_RedTeamScore)
+	float RedTeamScore;
+
+	UPROPERTY(ReplicatedUsing=OnRep_BlueTeamScore)
+	float BlueTeamScore;
+
+	UFUNCTION()
+	void OnRep_BlueTeamScore();
+	
+	UFUNCTION()
+	void OnRep_RedTeamScore();
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void UpdateScore(ABlasterPlayerState* ScoringPlayer);
