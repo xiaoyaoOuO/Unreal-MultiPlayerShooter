@@ -439,6 +439,20 @@ void ABlasterCharacter::OnRep_CurrentShield()
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
                                       AController* InstigatedBy, AActor* DamageCauser)
 {
+	ABlasterCharacter* DamagedCharacter = Cast<ABlasterCharacter>(DamagedActor);
+	ABlasterPlayerController* InstigatedByController = Cast<ABlasterPlayerController>(InstigatedBy);
+	if (DamagedCharacter && InstigatedByController)
+	{
+		ABlasterPlayerState* InstigatedByPlayerState = InstigatedByController->GetPlayerState<ABlasterPlayerState>();
+		ABlasterPlayerState* DamagedPlayerState = DamagedCharacter->GetPlayerState<ABlasterPlayerState>();
+		if (DamagedPlayerState && InstigatedByPlayerState)
+		{
+			if (DamagedPlayerState->GetTeam() == InstigatedByPlayerState->GetTeam())
+			{
+				return;
+			}
+		}
+	}
 	float DamageToHealth = Damage;
 	if (CurrentShield > 0)
 	{
@@ -468,21 +482,19 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 void ABlasterCharacter::InitialWeapon()
 {
-	if (DefaultWeaponClass)
+	if (DefaultWeaponClass == nullptr) return;
+	if (UWorld* World = GetWorld())
 	{
-		if (UWorld* World = GetWorld())
+		if (!World->GetAuthGameMode() || bShouldElim) return;
+		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
+		if (StartingWeapon && CombatComponent)
 		{
-			if (!World->GetAuthGameMode() || bShouldElim) return;
-			AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
-			if (StartingWeapon && CombatComponent)
-			{
-				StartingWeapon->bShouldDestroy = true;
-				CombatComponent->EquipWeapon(StartingWeapon);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn default weapon."));
-			}
+			StartingWeapon->bShouldDestroy = true;
+			CombatComponent->EquipWeapon(StartingWeapon);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to spawn default weapon."));
 		}
 	}
 }

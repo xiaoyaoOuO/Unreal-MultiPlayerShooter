@@ -5,6 +5,11 @@
 
 #include "Blast/GameState/BlasterGameState.h"
 
+ATeamGameMode::ATeamGameMode()
+{
+	bTeamMatch = true;
+}
+
 void ATeamGameMode::AddPlayerToTeam(ABlasterGameState* BlasterGameState, ABlasterPlayerState* BlasterPlayerState)
 {
 	if (BlasterGameState->RedTeamPlayers.Num() <= BlasterGameState->BlueTeamPlayers.Num())
@@ -76,5 +81,19 @@ void ATeamGameMode::HandleMatchHasStarted()
 				AddPlayerToTeam(BlasterGameState, BlasterPlayerState);
 			}
 		}
+	}
+}
+
+void ATeamGameMode::CharacterElim(class ABlasterCharacter* ElimmedCharacter,
+	class ABlasterPlayerController* VictimController, class ABlasterPlayerController* AttackerController)
+{
+	Super::CharacterElim(ElimmedCharacter, VictimController, AttackerController);
+
+	if (AttackerController == nullptr || VictimController == nullptr) return;
+	ABlasterPlayerState* VictimPlayerState = VictimController->GetPlayerState<ABlasterPlayerState>();
+	ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
+	if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
+	{
+		BlasterGameState->AddTeamScore(VictimPlayerState, AttackerPlayerState);
 	}
 }

@@ -161,6 +161,64 @@ void ABlasterHUD::OpenAnnouncement()
 	}
 }
 
+void ABlasterHUD::HideTeamScore()
+{
+	if (CharacterOverlay)
+	{
+		if (CharacterOverlay->BlueTeamScoreText)
+		{
+			CharacterOverlay->BlueTeamScoreText->SetVisibility(ESlateVisibility::Hidden);
+		}
+		if (CharacterOverlay->RedTeamScoreText)
+		{
+			CharacterOverlay->RedTeamScoreText->SetVisibility(ESlateVisibility::Hidden);
+		}
+		if (CharacterOverlay->TeamScoreSlashText)
+		{
+			CharacterOverlay->TeamScoreSlashText->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void ABlasterHUD::InitTeamScore()
+{
+	if (CharacterOverlay)
+	{
+		if (CharacterOverlay->BlueTeamScoreText)
+		{
+			CharacterOverlay->BlueTeamScoreText->SetVisibility(ESlateVisibility::Visible);
+			CharacterOverlay->BlueTeamScoreText->SetText(FText::FromString("0"));
+		}
+		if (CharacterOverlay->RedTeamScoreText)
+		{
+			CharacterOverlay->RedTeamScoreText->SetVisibility(ESlateVisibility::Visible);
+			CharacterOverlay->RedTeamScoreText->SetText(FText::FromString("0"));
+		}
+		if (CharacterOverlay->TeamScoreSlashText)
+		{
+			CharacterOverlay->TeamScoreSlashText->SetVisibility(ESlateVisibility::Visible);
+			CharacterOverlay->TeamScoreSlashText->SetText(FText::FromString("|"));
+		}
+	}
+}
+
+void ABlasterHUD::UpdateTeamScore(int RedTeamScore, int BlueTeamScore)
+{
+	if (CharacterOverlay)
+	{
+		if (CharacterOverlay->BlueTeamScoreText)
+		{
+			FString BlueTeamScoreString = FString::Printf(TEXT("%d"), BlueTeamScore);
+			CharacterOverlay->BlueTeamScoreText->SetText(FText::FromString(BlueTeamScoreString));
+		}
+		if (CharacterOverlay->RedTeamScoreText)
+		{
+			FString RedTeamScoreString = FString::FromInt(RedTeamScore);
+			CharacterOverlay->RedTeamScoreText->SetText(FText::FromString(RedTeamScoreString));
+		}
+	}
+}
+
 void ABlasterHUD::RemoveElimAnnouncement(UElimAnnouncement* AnnouncementToRemove)
 {
 	if (AnnouncementToRemove)

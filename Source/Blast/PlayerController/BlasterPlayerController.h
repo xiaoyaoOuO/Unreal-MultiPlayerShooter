@@ -108,6 +108,9 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
 	FName MatchState;
 
+	UPROPERTY(ReplicatedUsing=OnRep_TeamMatch)
+	bool bIsTeamMatch;
+
 	/*
 	 * 高Ping的警告
 	 */
@@ -132,7 +135,7 @@ private:
 	UReturnToMainMenu* ReturnToMainMenuWidget;
 	bool bReturnMenuOpen = false;
 	
-	void HandleMatchStarted();
+	void HandleMatchStarted(bool bIsTeamMatchToSet);
 	void HandleCoolDown();
 	UFUNCTION()
 	void OnRep_MatchState();
@@ -173,7 +176,7 @@ public:
 	void UpdateShield(const FHUDData& Data, UCharacterOverlay* CharacterOverlay);
 	void SetBlasterPlayerHUDData(const EHUDType& HUDType,const FHUDData& Data);
 	void SetAnnouncementHUDData(const EHUDType& HUDType,const FHUDData& Data);
-	void OnMatchStateSet(FName State);
+	void OnMatchStateSet(FName State, bool bIsTeamMatch = false);
 	void InitHUD();
 	void DrawCoolDownHUD(const UAnnouncement* Announcement,const FHUDData& Data);
 	void UpdateCharacterShield(float CurrentShield, float MaxShield);
@@ -183,7 +186,11 @@ public:
 	void PollForPing(float DeltaSeconds);
 	void OnQuitButtonPressed();
 	void ShowElimAnnouncement(const FString& AttackerName, const FString& VictimPlayerName);
+	void UpdateTeamScore(float RedTeamScore, float BlueTeamScore);
 	
 	UFUNCTION(Client,Reliable)
 	void Client_ElimAnnouncement(const ABlasterPlayerState* VictimPlayerState, const ABlasterPlayerState* AttackerPlayerState);
+
+	UFUNCTION()
+	void OnRep_TeamMatch();
 };

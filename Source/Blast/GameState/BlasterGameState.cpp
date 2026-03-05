@@ -5,12 +5,37 @@
 
 #include "Net/UnrealNetwork.h"
 
+void ABlasterGameState::AddTeamScore(ABlasterPlayerState* VictimPlayerState, ABlasterPlayerState* AttackerPlayerState)
+{
+	if (MatchState != MatchState::InProgress) return;
+	if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
+	{
+		if (VictimPlayerState->GetTeam() != AttackerPlayerState->GetTeam())
+		{
+			switch (AttackerPlayerState->GetTeam())
+			{
+			case ETeam::ET_Blue:
+				BlueTeamScore += 1;
+				break;
+			case ETeam::ET_Red:
+				RedTeamScore += 1;
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	UpdateTeamScore();
+}
+
 void ABlasterGameState::OnRep_BlueTeamScore()
 {
+	UpdateTeamScore();
 }
 
 void ABlasterGameState::OnRep_RedTeamScore()
 {
+	UpdateTeamScore();
 }
 
 void ABlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -56,5 +81,13 @@ void ABlasterGameState::UpdateScore(ABlasterPlayerState* ScoringPlayer)
 		{
 			BlasterCharacter->Multicast_CharacterGainedLead();
 		}
+	}
+}
+
+void ABlasterGameState::UpdateTeamScore()
+{
+	if (ABlasterPlayerController* BlasterPlayerController = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		BlasterPlayerController->UpdateTeamScore(RedTeamScore, BlueTeamScore);
 	}
 }

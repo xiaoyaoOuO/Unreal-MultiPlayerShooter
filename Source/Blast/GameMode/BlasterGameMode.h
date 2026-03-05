@@ -30,6 +30,10 @@ public:
 	void Multicast_EliminateCharacter(ABlasterCharacter* ElimmedCharacter, bool bLeftGame);
 
 	ABlasterGameMode();
+
+protected:
+	bool bTeamMatch = false;
+	
 private:
 	float ElimScore = 1.f;
 

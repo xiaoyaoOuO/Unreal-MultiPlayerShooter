@@ -68,6 +68,10 @@ public:
 	void CloseAnnouncement();
 	void OpenAnnouncement();
 
+	void HideTeamScore();
+	void InitTeamScore();
+	void UpdateTeamScore(int RedTeamScore, int BlueTeamScore);
+
 	UFUNCTION()
 	void RemoveElimAnnouncement(UElimAnnouncement* AnnouncementToRemove);
 	

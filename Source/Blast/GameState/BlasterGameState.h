@@ -34,6 +34,9 @@ public:
 	float BlueTeamScore;
 
 	UFUNCTION()
+	void AddTeamScore(ABlasterPlayerState* VictimPlayerState, ABlasterPlayerState* AttackerPlayerState);
+
+	UFUNCTION()
 	void OnRep_BlueTeamScore();
 	
 	UFUNCTION()
@@ -42,4 +45,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void UpdateScore(ABlasterPlayerState* ScoringPlayer);
+
+	void UpdateTeamScore();
 };

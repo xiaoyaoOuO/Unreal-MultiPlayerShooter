@@ -13,14 +13,23 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
-void ABlasterPlayerController::HandleMatchStarted()
+void ABlasterPlayerController::HandleMatchStarted(bool bIsTeamMatchToSet)
 {
+	if (HasAuthority()) bIsTeamMatch = bIsTeamMatchToSet;
 	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
 	if (BlasterHUD)
 	{
 		BlasterHUD->CloseAnnouncement();
 		BlasterHUD->AddCharacterOverlay();
 		InitHUD();
+		if (!HasAuthority()) return; //避免重复调用
+		if (bIsTeamMatch)
+		{
+			BlasterHUD->InitTeamScore();
+		}else
+		{
+			BlasterHUD->HideTeamScore();
+		}
 	}
 }
 
@@ -49,7 +58,7 @@ void ABlasterPlayerController::OnRep_MatchState()
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		HandleMatchStarted();
+		HandleMatchStarted(bIsTeamMatch);
 	}else if (MatchState == MatchState::CoolDown)
 	{
 		HandleCoolDown();
@@ -178,7 +187,7 @@ void ABlasterPlayerController::Client_ReportServerMatchState_Implementation(cons
 	WarmUpTime = ServerMatchState.WarmUpTime;
 	LevelStartTime = ServerMatchState.LevelStartTime;
 	CoolDownTime = ServerMatchState.CoolDownTime;
-	OnMatchStateSet(ServerMatchState.MatchState);
+	OnMatchStateSet(ServerMatchState.MatchState, bIsTeamMatch);
 	UE_LOG(LogTemp,Warning,TEXT("Client : MatchTime: %f, WarmUpTime: %f, LevelStartTime: %f"), MatchTime, WarmUpTime, LevelStartTime);
 }
 
@@ -437,6 +446,30 @@ void ABlasterPlayerController::ShowElimAnnouncement(const FString& AttackerName,
 	}
 }
 
+void ABlasterPlayerController::UpdateTeamScore(float RedTeamScore, float BlueTeamScore)
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD)
+	{
+		BlasterHUD->UpdateTeamScore(RedTeamScore, BlueTeamScore);
+	}
+}
+
+void ABlasterPlayerController::OnRep_TeamMatch()
+{
+	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
+	if (BlasterHUD)
+	{
+		if (bIsTeamMatch)
+		{
+			BlasterHUD->InitTeamScore();
+		}else
+		{
+			BlasterHUD->HideTeamScore();
+		}
+	}
+}
+
 void ABlasterPlayerController::SetBlasterPlayerHUDData(const EHUDType& HUDType, const FHUDData& Data)
 {
 	BlasterHUD = BlasterHUD != nullptr ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
@@ -508,7 +541,7 @@ void ABlasterPlayerController::SetAnnouncementHUDData(const EHUDType& HUDType, c
 	}
 }
 
-void ABlasterPlayerController::OnMatchStateSet(FName State)
+void ABlasterPlayerController::OnMatchStateSet(FName State, bool bIsTeamMatchToSet)
 {
 	MatchState = State;
 
@@ -522,7 +555,7 @@ void ABlasterPlayerController::OnMatchStateSet(FName State)
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		HandleMatchStarted();
+		HandleMatchStarted(bIsTeamMatchToSet);
 	}else if (MatchState == MatchState::CoolDown)
 	{
 		HandleCoolDown();
