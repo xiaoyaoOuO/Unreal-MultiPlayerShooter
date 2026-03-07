@@ -50,6 +50,12 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
+	UPROPERTY(ReplicatedUsing=OnRep_OverlappingFlag)
+	class AFlag* OverlappingFlag;
+
+	UPROPERTY(ReplicatedUsing=OnRep_HoldFlag)
+	AFlag* HoldFlag;   //当前持有的旗帜
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess=true))
 	class UCombatComponent* CombatComponent;
 
@@ -70,9 +76,18 @@ private:
 
 	UFUNCTION(Server,Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server,Reliable)
+	void ServerHoldFlag(AFlag* Flag);
 	
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UFUNCTION()
+	void OnRep_OverlappingFlag(AFlag* LastFlag);
+
+	UFUNCTION()
+	void OnRep_HoldFlag();
 
 	//是否离开游戏
 	bool bLeaveGame;
@@ -296,6 +311,9 @@ public:
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
+	void SetOverlappingFlag(AFlag* Flag);
+	void LocalHoldFlag(AFlag* Flag);
+	void AttachFlagToBack(AFlag* Flag);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	void Elim(bool bLeftGame);
@@ -306,6 +324,7 @@ public:
 	void SetGrenadeVisibility(bool bVisible);
 	void DropSecondaryWeapon();
 	void DropPrimaryWeapon();
+	void DropFlag();
 	void DropWeapons();
 	void InitialWeapon(); 	//玩家出生默认的武器
 	void SetTeamColor(ETeam Team);
@@ -313,6 +332,7 @@ public:
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
 	ECombatState Get_CombatState() const;
+	ETeam Get_Team() const;
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScopeWidget);
@@ -343,4 +363,6 @@ public:
 	FORCEINLINE UCombatComponent* GetCombatComponent() const {return CombatComponent;}
 	FORCEINLINE UBuffComponent* GetBuffComponent() const {return BuffComponent;}
 	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent() const {return LagCompensationComponent;}
+	FORCEINLINE AFlag* GetOverlappingFlag() const {return OverlappingFlag;}
+	FORCEINLINE bool IsHoldingFlag() const {return HoldFlag != nullptr;}
 };

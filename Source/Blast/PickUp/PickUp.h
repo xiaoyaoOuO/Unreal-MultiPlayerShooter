@@ -37,16 +37,16 @@ protected:
 	virtual void Destroyed() override;
 
 private:
-	UPROPERTY(VisibleAnywhere)
-	USphereComponent* OverlapSphere;
-
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* PickUpMesh;
-
 	UPROPERTY(EditAnywhere,Category="PickUp")
 	USoundCue* PickUpSound;
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* PickUpMesh;
+	
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* OverlapSphere;
+	
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* PickUpEffect;
 

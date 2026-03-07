@@ -10,11 +10,13 @@
 #include "Blast/BlasterComponents/LagCompensationComponent.h"
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/GameState/BlasterGameState.h"
+#include "Blast/PickUp/AFlag.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -61,6 +63,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
 
 	OverlappingWeapon = nullptr;
+	OverlappingFlag = nullptr;
+	HoldFlag = nullptr;
 
     ACharacter::GetMovementComponent()->NavAgentProps.bCanCrouch = true;
 
@@ -145,6 +149,12 @@ void ABlasterCharacter::ServerLeaveGame_Implementation()
 	}
 }
 
+void ABlasterCharacter::ServerHoldFlag_Implementation(AFlag* Flag)
+{
+	if (Flag == nullptr) return;
+	LocalHoldFlag(Flag);
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (IsValid(LastWeapon))
@@ -154,6 +164,29 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if (IsValid(OverlappingWeapon))
 	{
 		OverlappingWeapon->ShowPickUpWidget(true);
+	}
+}
+
+void ABlasterCharacter::OnRep_OverlappingFlag(AFlag* LastFlag)
+{
+	if (IsValid(LastFlag))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep : LastFlag: %s"), *LastFlag->GetName());
+		LastFlag->ShowPickUpWidget(false);
+	}
+	if (IsValid(OverlappingFlag))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnRep : OverlappingFlag: %s"), *OverlappingFlag->GetName());
+		OverlappingFlag->ShowPickUpWidget(true);
+	}
+}
+
+void ABlasterCharacter::OnRep_HoldFlag()
+{
+	if (HoldFlag)
+	{
+		HoldFlag->SetFlagState(EFlagState::EFS_Equipped);
+		AttachFlagToBack(HoldFlag);
 	}
 }
 
@@ -256,7 +289,10 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,OverlappingWeapon,COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,AO_Yaw,COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter,TurningInPlace,COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter,OverlappingFlag,COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter,CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter,CurrentShield);
+	DOREPLIFETIME(ABlasterCharacter,HoldFlag);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -345,6 +381,10 @@ void ABlasterCharacter::EquipButtonPressed()
 	if (CombatComponent)
 	{
 		ServerEquipButtonPressed();
+	}
+	if (OverlappingFlag)
+	{
+		ServerHoldFlag(OverlappingFlag);
 	}
 }
 
@@ -798,10 +838,21 @@ void ABlasterCharacter::DropPrimaryWeapon()
 	}
 }
 
+void ABlasterCharacter::DropFlag()
+{
+	if (HoldFlag)
+	{
+		HoldFlag->Dropped();
+		HoldFlag = nullptr;
+	}
+}
+
 void ABlasterCharacter::DropWeapons()
 {
 	DropPrimaryWeapon();
 	DropSecondaryWeapon();
+	DropFlag();
+	
 }
 
 void ABlasterCharacter::Elim(bool bLeftGame)
@@ -890,6 +941,62 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	}
 }
 
+void ABlasterCharacter::SetOverlappingFlag(AFlag* Flag)
+{
+	if (!HasAuthority())
+	{
+		if (Flag)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SetOverlappingFlag: Flag: %s"), *Flag->GetName());
+		}else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SetOverlappingFlag: Flag Is Null"));
+		}
+	}else
+	{
+		if (Flag)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server SetOverlappingFlag: Flag: %s"), *Flag->GetName());
+		}else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server SetOverlappingFlag: Flag Is Null"));
+		}
+	}
+	if (OverlappingFlag)
+	{
+		OverlappingFlag->ShowPickUpWidget(false);
+	}
+	OverlappingFlag = Flag;
+	if (IsLocallyControlled() && OverlappingFlag)
+	{
+		OverlappingFlag->ShowPickUpWidget(true);
+	}
+}
+
+void ABlasterCharacter::LocalHoldFlag(AFlag* Flag)
+{
+	if (Flag)
+	{
+		if (OverlappingFlag == Flag)
+		{
+			SetOverlappingFlag(nullptr);
+		}
+		HoldFlag = Flag;
+		HoldFlag->SetFlagState(EFlagState::EFS_Equipped);
+		AttachFlagToBack(HoldFlag);
+		HoldFlag->SetOwner(this);
+	}
+}
+
+void ABlasterCharacter::AttachFlagToBack(AFlag* Flag)
+{
+	if (Flag == nullptr) return;
+	if (const USkeletalMeshSocket* FlagSocket = GetMesh()->GetSocketByName("BackFlagSocket"))
+	{
+		FlagSocket->AttachActor(Flag, GetMesh());
+	}
+}
+
 bool ABlasterCharacter::IsWeaponEquipped()
 {
 	return CombatComponent && CombatComponent->EquippedWeapon;
@@ -916,6 +1023,15 @@ ECombatState ABlasterCharacter::Get_CombatState() const
 {
 	if (CombatComponent == nullptr) return ECombatState::ECS_DefaultMax;
 	return CombatComponent->Get_CombatState();
+}
+
+ETeam ABlasterCharacter::Get_Team() const
+{
+	if (const ABlasterPlayerState* BlastPlayerState = GetPlayerState<ABlasterPlayerState>())
+	{
+		return BlastPlayerState->GetTeam();
+	}
+	return ETeam::ET_NoTeam;
 }
 
 void ABlasterCharacter::Multicast_CharacterLostLead_Implementation()
