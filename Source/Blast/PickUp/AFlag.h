@@ -36,7 +36,11 @@ public:
 	void ShowPickUpWidget(bool bShowPickUpWidget) const;
 
 	void SetFlagState(EFlagState NewState);
-	void Dropped();
+	
+	void Dropped(bool bResetLocation = false);
+
+	UFUNCTION()
+	void ResetFlagLocation();
 
 private:
 	void OnEquipped();
@@ -61,4 +65,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	ETeam TeamType = ETeam::ET_NoTeam;
+
+	FTimerHandle ResetFlagTimer;
+	FTransform InitialTransform;
 };

@@ -324,7 +324,7 @@ public:
 	void SetGrenadeVisibility(bool bVisible);
 	void DropSecondaryWeapon();
 	void DropPrimaryWeapon();
-	void DropFlag();
+	void DropFlag(bool bResetFlagLocation = false);
 	void DropWeapons();
 	void InitialWeapon(); 	//玩家出生默认的武器
 	void SetTeamColor(ETeam Team);

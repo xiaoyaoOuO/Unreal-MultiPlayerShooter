@@ -94,6 +94,9 @@ void ATeamGameMode::CharacterElim(class ABlasterCharacter* ElimmedCharacter,
 	ABlasterPlayerState* AttackerPlayerState = AttackerController->GetPlayerState<ABlasterPlayerState>();
 	if (ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>())
 	{
-		BlasterGameState->AddTeamScore(VictimPlayerState, AttackerPlayerState);
+		if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState && VictimPlayerState->GetTeam() != AttackerPlayerState->GetTeam())
+		{
+			BlasterGameState->AddTeamScore(AttackerPlayerState);
+		}
 	}
 }

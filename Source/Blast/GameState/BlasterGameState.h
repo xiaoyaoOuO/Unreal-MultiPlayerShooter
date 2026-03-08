@@ -34,7 +34,7 @@ public:
 	float BlueTeamScore;
 
 	UFUNCTION()
-	void AddTeamScore(ABlasterPlayerState* VictimPlayerState, ABlasterPlayerState* AttackerPlayerState);
+	void AddTeamScore(ABlasterPlayerState* ScoredPlayerState, uint8 AddScore = 1);
 
 	UFUNCTION()
 	void OnRep_BlueTeamScore();

@@ -868,11 +868,11 @@ void ABlasterCharacter::DropPrimaryWeapon()
 	}
 }
 
-void ABlasterCharacter::DropFlag()
+void ABlasterCharacter::DropFlag(bool bResetFlagLocation)
 {
 	if (HoldFlag)
 	{
-		HoldFlag->Dropped();
+		HoldFlag->Dropped(bResetFlagLocation);
 		HoldFlag = nullptr;
 	}
 }
@@ -882,7 +882,6 @@ void ABlasterCharacter::DropWeapons()
 	DropPrimaryWeapon();
 	DropSecondaryWeapon();
 	DropFlag();
-	
 }
 
 void ABlasterCharacter::Elim(bool bLeftGame)

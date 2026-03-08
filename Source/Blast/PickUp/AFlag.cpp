@@ -89,6 +89,8 @@ void AFlag::BeginPlay()
 	OverlapSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &AFlag::OnSphereOverlap);
 	OverlapSphere->OnComponentEndOverlap.AddDynamic(this, &AFlag::OnSphereEndOverlap);
+
+	InitialTransform = GetActorTransform();
 }
 
 void AFlag::Tick(float DeltaSeconds)
@@ -164,12 +166,21 @@ void AFlag::OnRep_FlagState()
 	}
 }
 
-void AFlag::Dropped()
+void AFlag::Dropped(bool bResetLocation)
 {
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	PickUpMesh->DetachFromComponent(DetachRules);
 	SetFlagState(EFlagState::EFS_Dropped);
 	SetOwner(nullptr);
+	if (bResetLocation && HasAuthority())
+	{
+		GetWorld()->GetTimerManager().SetTimer(ResetFlagTimer, this, &AFlag::ResetFlagLocation, 2.f);
+	}
+}
+
+void AFlag::ResetFlagLocation()
+{
+	SetActorTransform(InitialTransform);
 }
 
 void AFlag::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

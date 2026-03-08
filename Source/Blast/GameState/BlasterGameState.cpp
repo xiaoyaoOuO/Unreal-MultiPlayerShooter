@@ -5,26 +5,22 @@
 
 #include "Net/UnrealNetwork.h"
 
-void ABlasterGameState::AddTeamScore(ABlasterPlayerState* VictimPlayerState, ABlasterPlayerState* AttackerPlayerState)
+void ABlasterGameState::AddTeamScore(ABlasterPlayerState* ScoredPlayerState, uint8 AddScore)
 {
 	if (MatchState != MatchState::InProgress) return;
-	if (VictimPlayerState && AttackerPlayerState && VictimPlayerState != AttackerPlayerState)
+
+	switch (ScoredPlayerState->GetTeam())
 	{
-		if (VictimPlayerState->GetTeam() != AttackerPlayerState->GetTeam())
-		{
-			switch (AttackerPlayerState->GetTeam())
-			{
-			case ETeam::ET_Blue:
-				BlueTeamScore += 1;
-				break;
-			case ETeam::ET_Red:
-				RedTeamScore += 1;
-				break;
-			default:
-				break;
-			}
-		}
+	case ETeam::ET_Blue:
+		BlueTeamScore += AddScore;
+		break;
+	case ETeam::ET_Red:
+		RedTeamScore += AddScore;
+		break;
+	default:
+		break;
 	}
+	
 	UpdateTeamScore();
 }
 
