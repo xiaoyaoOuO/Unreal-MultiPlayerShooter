@@ -11,6 +11,7 @@
 #include "Blast/GameMode/BlasterGameMode.h"
 #include "Blast/GameState/BlasterGameState.h"
 #include "Blast/PickUp/AFlag.h"
+#include "Blast/PlayerStart/TeamPlayerStart.h"
 #include "Blast/PlayerState/BlasterPlayerState.h"
 #include "Blast/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
@@ -18,6 +19,7 @@
 #include "Components/WidgetComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -560,6 +562,33 @@ void ABlasterCharacter::SetTeamColor(ETeam Team)
 	}
 }
 
+void ABlasterCharacter::ChoosePlayerStart()
+{
+	if (HasAuthority() && Get_Team() != ETeam::ET_NoTeam)
+	{
+		TArray<AActor*> PlayerStarts;
+		TArray<ATeamPlayerStart*> TeamPlayerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+		for (AActor* PlayerStart : PlayerStarts)
+		{
+			if (ATeamPlayerStart* TeamPlayerStart = Cast<ATeamPlayerStart>(PlayerStart))
+			{
+				if (TeamPlayerStart->GetTeam() == Get_Team())
+				{
+					TeamPlayerStarts.Add(TeamPlayerStart);
+				}
+			}
+		}
+		if (TeamPlayerStarts.Num() > 0)
+		{
+			int32 RandomIndex = FMath::RandRange(0, TeamPlayerStarts.Num() - 1);
+			AActor* ChosenPlayerStart = TeamPlayerStarts[RandomIndex];
+			SetActorLocation(ChosenPlayerStart->GetActorLocation());
+			SetActorRotation(ChosenPlayerStart->GetActorRotation());
+		}
+	}
+}
+
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (!CombatComponent || CombatComponent->EquippedWeapon == nullptr) return;
@@ -773,6 +802,7 @@ void ABlasterCharacter::PollInit()
 			BlasterPlayerState->AddPlayerScore(0.f);
 			BlasterPlayerState->AddPlayerDefeat(0);
 			SetTeamColor(BlasterPlayerState->GetTeam());
+			ChoosePlayerStart();
 			if (ABlasterGameState* BlasterGameState = GetWorld()->GetGameState<ABlasterGameState>())
 			{
 				if (BlasterGameState->TopScoringPlayers.Contains(BlasterPlayerState))

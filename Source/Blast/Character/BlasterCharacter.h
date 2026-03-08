@@ -328,6 +328,7 @@ public:
 	void DropWeapons();
 	void InitialWeapon(); 	//玩家出生默认的武器
 	void SetTeamColor(ETeam Team);
+	void ChoosePlayerStart();
 	
 	AWeapon* Get_EquippedWeapon();
 	FVector  Get_HitResult();
