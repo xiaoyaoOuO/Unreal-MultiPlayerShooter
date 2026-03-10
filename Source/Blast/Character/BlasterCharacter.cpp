@@ -533,6 +533,7 @@ void ABlasterCharacter::InitialWeapon()
 		{
 			StartingWeapon->bShouldDestroy = true;
 			CombatComponent->EquipWeapon(StartingWeapon);
+			// CombatComponent->UpdateCarriedAmmoHUD();
 		}
 		else
 		{

@@ -16,7 +16,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	const int32 PlayerNums = GameState->PlayerArray.Num();
-	if (PlayerNums >= 1)
+	if (PlayerNums >= 2)
 	{
 		bTravelInProgress = true;
 		HandleLobbyTravel();

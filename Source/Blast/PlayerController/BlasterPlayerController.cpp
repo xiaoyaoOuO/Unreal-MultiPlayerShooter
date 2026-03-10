@@ -83,6 +83,7 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	if (const ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
 	{
 		SetBlasterPlayerHealth(BlasterCharacter->Get_CurrentHealth(),BlasterCharacter->Get_MaxHealth());
+		UpdateCharacterShield(BlasterCharacter->Get_CurrentShield(),BlasterCharacter->Get_MaxShield());
 	}
 }
 

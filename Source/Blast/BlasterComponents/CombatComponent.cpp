@@ -278,14 +278,15 @@ void UCombatComponent::OnReloadComplete()
 
 void UCombatComponent::UpdateCarriedAmmoHUD()
 {
-	if (Character == nullptr || Character->Controller == nullptr) return;
-	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-	if (Controller)
-	{
-		FHUDData HUDData;
-		HUDData.CarriedAmmo = CarriedAmmoAmount;
-		Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
-	}
+	Character = Character == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : Character;
+	if (Character == nullptr) return;
+
+	Controller = Controller == nullptr ? Cast<ABlasterPlayerController>(Character->GetController()) : Controller;
+	if (Controller == nullptr) return; // HUD尚未就绪，PollInit会在每帧重试
+
+	FHUDData HUDData;
+	HUDData.CarriedAmmo = CarriedAmmoAmount;
+	Controller->SetBlasterPlayerHUDData(EHT_CarriedAmmo, HUDData);
 }
 
 //动画添加一次子弹，就通知一次该函数
@@ -429,7 +430,7 @@ void UCombatComponent::BeginPlay()
 	}
 	CarriedGrenadeAmount = InitialCarried_ThrownGrenade;
 	UpdateGrenadeHUD();
-	if (Character)
+	if (Character && Character->HasAuthority())
 	{
 		Character->InitialWeapon();
 	}
@@ -445,6 +446,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;    //关闭随移动转向
 		Character->bUseControllerRotationYaw = true;
 		EquippedWeapon->UpdateAmmoAmountHUD();
+		UpdateCarriedAmmoHUD();
 		//拾取音效
 		if (EquippedWeapon->EquippedSound)
 		{
