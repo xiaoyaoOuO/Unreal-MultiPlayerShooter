@@ -1,5 +1,5 @@
 # Blast
-
+演示视频：https://www.bilibili.com/video/BV12VwszqEZY/
 一个基于 Unreal Engine 5.6 开发的多人联机 TPS 项目，重点实现了团队对战、夺旗模式、组件化战斗系统，以及面向高延迟场景的服务端回溯命中判定。
 
 ![image-20260310230810344](README/image-20260310230810344.png)
